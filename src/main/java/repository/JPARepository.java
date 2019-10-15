@@ -1,37 +1,44 @@
 package repository;
 
-import model.User;
+
+import model.Workout;
 
 import java.util.List;
 
 public class JPARepository implements Repository {
+
     @Override
-    public List<User> list() {
+    public List<Workout> list() {
         return null;
     }
 
     @Override
-    public User save(User user) {
+    public Workout save(Workout workout) {
         return null;
     }
 
     @Override
-    public User get(String userId) {
+    public Workout get(String userId) {
         return null;
     }
 
     @Override
-    public User update(User user) {
+    public Workout update(Workout workout) {
         return null;
     }
 
     @Override
-    public void delete(String userId) {
+    public void delete(String workoutId) {
 
     }
 
     @Override
-    public List<User> find(String keyWord) {
+    public List<Workout> findByUserId(String userId) {
         return null;
+    }
+
+    @Override
+    public int size() {
+        return 0;
     }
 }

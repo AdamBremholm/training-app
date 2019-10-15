@@ -1,6 +1,6 @@
 package model;
 
 public enum TrainingType {
-    AEROBIC,
-    ANAEROBIC
+    CARDIO,
+    STRENGTH,
 }
