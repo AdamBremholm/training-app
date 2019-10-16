@@ -13,5 +13,10 @@ public interface Repository {
     void delete(String workoutId);
     List<Workout> findByUserId(String userId);
     int size();
+    double totalLiftedWeightByUser(String userId);
+    double heaviestLiftByUser(String userId);
+    int totalLiftsByUser(String userid);
+
+
 
 }

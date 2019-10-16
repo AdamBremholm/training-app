@@ -21,6 +21,7 @@ public class ListRepository implements Repository {
         return workouts;
     }
 
+
     @Override
     public List<Workout> list() {
         return null;
@@ -55,6 +56,25 @@ public class ListRepository implements Repository {
     @Override
     public int size() {
        return workouts.size();
+    }
+
+    @Override
+    public double totalLiftedWeightByUser(String userId) {
+        return workouts.stream()
+                .filter((workout) -> userId.equals(workout.getUser().getUserId()))
+                .map(Workout::liftedPerWorkOut)
+                .mapToDouble(Double::doubleValue)
+                .sum();
+    }
+
+    @Override
+    public double heaviestLiftByUser(String userId) {
+        return 0;
+    }
+
+    @Override
+    public int totalLiftsByUser(String userid) {
+        return 0;
     }
 
 }

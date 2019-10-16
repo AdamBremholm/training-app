@@ -41,4 +41,19 @@ public class JPARepository implements Repository {
     public int size() {
         return 0;
     }
+
+    @Override
+    public double totalLiftedWeightByUser(String userId) {
+        return 0;
+    }
+
+    @Override
+    public double heaviestLiftByUser(String userId) {
+        return 0;
+    }
+
+    @Override
+    public int totalLiftsByUser(String userid) {
+        return 0;
+    }
 }

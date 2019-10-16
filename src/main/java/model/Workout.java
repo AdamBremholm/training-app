@@ -1,6 +1,8 @@
 package model;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 
 public class Workout {
 
@@ -8,9 +10,7 @@ public class Workout {
     private final User user;
     private final Instant startTime;
     private final Instant endTime;
-    private final int reps;
-    private final int sets;
-    private final double weight;
+    private final List<WorkoutSet> workoutSets;
     private final Exercise exercise;
 
     public static class Builder {
@@ -20,9 +20,7 @@ public class Workout {
         private String workoutId = "";
         private Instant startTime = null;
         private Instant endTime = null;
-        private int reps = 0;
-        private int sets = 0;
-        private double liftingWeight = 0;
+        private List<WorkoutSet> workoutSets = null;
 
         public Builder(User user, Exercise exercise){
             this.user = user;
@@ -40,18 +38,12 @@ public class Workout {
             this.endTime = endTime;
             return this;
         }
-        public Builder reps(int reps){
-            this.reps = reps;
+
+        public Builder workoutSets(List<WorkoutSet> workoutSets){
+            this.workoutSets = workoutSets;
             return this;
         }
-        public Builder sets(int sets){
-            this.sets = sets;
-            return this;
-        }
-        public Builder liftingWeight(double liftingWeight){
-            this.liftingWeight = liftingWeight;
-            return this;
-        }
+
         public Workout build(){
             return new Workout(this);
         }
@@ -63,9 +55,7 @@ public class Workout {
         this.user = builder.user;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
-        this.reps = builder.reps;
-        this.sets = builder.sets;
-        this.weight = builder.liftingWeight;
+        this.workoutSets = builder.workoutSets;
         this.exercise = builder.exercise;
     }
 
@@ -85,19 +75,19 @@ public class Workout {
         return endTime;
     }
 
-    public int getReps() {
-        return reps;
-    }
-
-    public int getSets() {
-        return sets;
-    }
-
-    public double getWeight() {
-        return weight;
+    public List<WorkoutSet> getWorkoutSets() {
+        return workoutSets;
     }
 
     public Exercise getExercise() {
         return exercise;
     }
+    public double liftedPerWorkOut() {
+        double totalLiftedWeight = 0;
+        if(Optional.ofNullable(workoutSets).isPresent()){
+          totalLiftedWeight = workoutSets.stream().map(WorkoutSet::totalWeightPerSet).mapToDouble(Double::doubleValue).sum();
+        }
+        return totalLiftedWeight;
+    }
+
 }
