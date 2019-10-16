@@ -1,7 +1,9 @@
 package model;
 
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class Workout {
@@ -10,21 +12,19 @@ public class Workout {
     private final User user;
     private final Instant startTime;
     private final Instant endTime;
-    private final List<WorkoutSet> workoutSets;
-    private final Exercise exercise;
+    private final List<Exercise> exercises;
 
     public static class Builder {
         private final User user;
-        private final Exercise exercise;
 
         private String workoutId = "";
         private Instant startTime = null;
         private Instant endTime = null;
-        private List<WorkoutSet> workoutSets = null;
+        private List<Exercise> exercises = null;
+        private List<ExerciseSet> exerciseSets = null;
 
-        public Builder(User user, Exercise exercise){
+        public Builder(User user){
             this.user = user;
-            this.exercise = exercise;
         }
         public Builder workoutId(String workoutId){
             this.workoutId = workoutId;
@@ -38,25 +38,23 @@ public class Workout {
             this.endTime = endTime;
             return this;
         }
-
-        public Builder workoutSets(List<WorkoutSet> workoutSets){
-            this.workoutSets = workoutSets;
+        public Builder exercises(List<Exercise> exercises){
+            this.exercises = exercises;
             return this;
         }
 
         public Workout build(){
-            return new Workout(this);
+            return new Workout(this, exercises);
         }
 
     }
 
-    public Workout(Builder builder) {
+    public Workout(Builder builder, List<Exercise> exercises) {
         this.workoutId = builder.workoutId;
         this.user = builder.user;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
-        this.workoutSets = builder.workoutSets;
-        this.exercise = builder.exercise;
+        this.exercises = exercises;
     }
 
     public String getWorkoutId() {
@@ -75,19 +73,22 @@ public class Workout {
         return endTime;
     }
 
-    public List<WorkoutSet> getWorkoutSets() {
-        return workoutSets;
-    }
-
-    public Exercise getExercise() {
-        return exercise;
-    }
     public double liftedPerWorkOut() {
         double totalLiftedWeight = 0;
-        if(Optional.ofNullable(workoutSets).isPresent()){
-          totalLiftedWeight = workoutSets.stream().map(WorkoutSet::totalWeightPerSet).mapToDouble(Double::doubleValue).sum();
+        if(Optional.ofNullable(exercises).isPresent()){
+          totalLiftedWeight = exercises.stream().map(Exercise::liftedPerExercise).mapToDouble(Double::doubleValue).sum();
         }
         return totalLiftedWeight;
     }
+
+    public ExerciseSet heaviestSet() {
+       if(Optional.ofNullable(exercises).isPresent())
+       return exercises.stream()
+               .map(Exercise::getHeaviestSet)
+               .max(Comparator.comparing(ExerciseSet::getWeight))
+               .orElseThrow(NoSuchElementException::new);
+       else throw new IllegalStateException("exercises not initialized");
+    }
+
 
 }

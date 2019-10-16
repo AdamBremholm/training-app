@@ -1,9 +1,14 @@
 package repository;
 
+import model.Exercise;
+import model.ExerciseSet;
 import model.Workout;
 
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 public class ListRepository implements Repository {
 
@@ -50,7 +55,9 @@ public class ListRepository implements Repository {
 
     @Override
     public List<Workout> findByUserId(String userId) {
-        return null;
+       return workouts.stream()
+                .filter((workout) -> userId.equals(workout.getUser().getUserId()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -60,8 +67,8 @@ public class ListRepository implements Repository {
 
     @Override
     public double totalLiftedWeightByUser(String userId) {
-        return workouts.stream()
-                .filter((workout) -> userId.equals(workout.getUser().getUserId()))
+        return findByUserId(userId)
+                .stream()
                 .map(Workout::liftedPerWorkOut)
                 .mapToDouble(Double::doubleValue)
                 .sum();
@@ -69,7 +76,11 @@ public class ListRepository implements Repository {
 
     @Override
     public double heaviestLiftByUser(String userId) {
-        return 0;
+        return findByUserId(userId)
+                .stream()
+                .map(Workout::heaviestSet)
+                .max(Comparator.comparing(ExerciseSet::getWeight))
+                .map(ExerciseSet::getWeight).orElseThrow(NoSuchElementException::new);
     }
 
     @Override

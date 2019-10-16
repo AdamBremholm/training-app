@@ -13,14 +13,15 @@ import static org.junit.Assert.*;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class WorkoutTest {
 
     private Repository repository;
     private User mockUser1;
     private User mockUser2;
+    private User mockUser3;
     private static final double DELTA = 0.001;
 
     @Mock
@@ -32,60 +33,68 @@ public class WorkoutTest {
         Controller controller = Controller.getInstance(ListRepository.getInstance(new ArrayList<>()), mockContext);
         repository = controller.getRepository();
 
-        mockUser1 = new User.Builder("mocky", "mock@mockmail.com", "mcMocky")
+         mockUser1 = new User.Builder("mocky", "mock@mockmail.com", "mcMocky")
                 .userId("mockUserId")
                 .height(180)
                 .weight(80)
                 .build();
-        mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
+         mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
                 .userId("mockUserId2")
                 .height(165)
                 .weight(60)
                 .build();
-        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
+         mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
                 .userId("mockUserId3")
                 .height(110)
                 .weight(50)
                 .build();
 
+        ExerciseSet exerciseSetA = new ExerciseSet(5, 60);
+        ExerciseSet exerciseSetB = new ExerciseSet(5, 55);
+        ExerciseSet exerciseSetC = new ExerciseSet(5, 60);
+        ExerciseSet exerciseSetD = new ExerciseSet(3, 40);
+        ExerciseSet exerciseSetE = new ExerciseSet(5, 40);
+        ExerciseSet exerciseSetF = new ExerciseSet(5, 45);
 
-        WorkoutSet workoutSetA = new WorkoutSet(10, 30);
-        WorkoutSet workoutSetB = new WorkoutSet(10, 35);
-        WorkoutSet workoutSetC = new WorkoutSet(8, 45);
+        Exercise squats = new Exercise(ExerciseType.SQUAT, Arrays.asList(exerciseSetA, exerciseSetA, exerciseSetA));
+        Exercise benchpress = new Exercise(ExerciseType.BENCHPRESS, Arrays.asList(exerciseSetB, exerciseSetB, exerciseSetB));
+        Exercise deadlift = new Exercise(ExerciseType.DEADLIFT, Collections.singletonList(exerciseSetC));
+        Exercise powerclean = new Exercise(ExerciseType.POWERCLEAN, Arrays.asList(exerciseSetE, exerciseSetE, exerciseSetE));
+        Exercise press = new Exercise(ExerciseType.PRESS, Arrays.asList(exerciseSetD, exerciseSetD, exerciseSetF));
 
-        WorkoutSet workoutSetD = new WorkoutSet(7, 50);
-        WorkoutSet workoutSetE = new WorkoutSet(5, 55);
-        WorkoutSet workoutSetF = new WorkoutSet(5, 56);
+        List<Exercise> exercisesA = Arrays.asList(squats, benchpress, deadlift);
+        List<Exercise> exercisesB = Arrays.asList(squats, powerclean, press);
 
 
-        Workout mockWorkout1 = new Workout.Builder(mockUser1, Exercise.SQUAT)
+        Workout mockWorkout1 = new Workout.Builder(mockUser1)
                 .workoutId("mockWorkOutId1")
                 .startTime(Instant.parse("2019-10-03T10:15:30.00Z"))
                 .endTime(Instant.parse("2019-10-03T10:16:30.00Z"))
-                .workoutSets(Arrays.asList(workoutSetA, workoutSetB, workoutSetC))
+                .exercises(exercisesA)
                 .build();
-        Workout mockWorkout2 = new Workout.Builder(mockUser2, Exercise.CHINS)
+        Workout mockWorkout2 = new Workout.Builder(mockUser2)
                 .workoutId("mockWorkOutId2")
                 .startTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .endTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .workoutSets(Arrays.asList(workoutSetF, workoutSetF, workoutSetB))
+                .exercises(exercisesB)
                 .build();
-        Workout mockWorkout3 = new Workout.Builder(mockUser3, Exercise.BENCHPRESS)
+        Workout mockWorkout3 = new Workout.Builder(mockUser3)
                 .workoutId("mockWorkOutId3")
                 .startTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .endTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .workoutSets(Arrays.asList(workoutSetA, workoutSetE, workoutSetD))
+                .exercises(exercisesA)
                 .build();
-        Workout mockWorkout4 = new Workout.Builder(mockUser1, Exercise.BENCHPRESS)
+        Workout mockWorkout4 = new Workout.Builder(mockUser1)
                 .workoutId("mockWorkOutId4")
                 .startTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .endTime(Instant.parse("2019-10-05T16:16:30.00Z"))
-                .workoutSets(Arrays.asList(workoutSetA, workoutSetE, workoutSetD))
+                .exercises(exercisesB)
                 .build();
-        Workout mockWorkout5 = new Workout.Builder(mockUser2, Exercise.BENCHPRESS)
+        Workout mockWorkout5 = new Workout.Builder(mockUser2)
                 .workoutId("mockWorkOutId5")
                 .startTime(Instant.parse("2019-10-02T15:15:30.00Z"))
                 .endTime(Instant.parse("2019-10-02T16:16:30.00Z"))
+                .exercises(null)
                 .build();
 
         repository.save(mockWorkout1);
@@ -101,13 +110,23 @@ public class WorkoutTest {
     }
 
     @Test
-    public void totalWeightLiftedByUSer() {
-        assertEquals(1935, repository.totalLiftedWeightByUser(mockUser1.getUserId()), DELTA);
+    public void totalWeightLiftedByUser() {
+        assertEquals(2025, repository.totalLiftedWeightByUser(mockUser1.getUserId()), DELTA);
     }
 
     @Test
-    public void totalWeightLiftedByUserWhenWorkoutSetIsNull() {
-        assertEquals(910, repository.totalLiftedWeightByUser(mockUser2.getUserId()), DELTA);
+    public void heaviestLiftByUser() {
+        assertEquals(60, repository.heaviestLiftByUser(mockUser2.getUserId()), DELTA);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void heaviestLiftByUserThrowsIllegalStateExceptionIfExercisesAreNotInitialized() {
+        assertEquals(60, repository.heaviestLiftByUser(mockUser2.getUserId()), DELTA);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getHeaviestLiftedSetThrowsExceptionIfNotInitialized() {
+        Exercise exercise = new Exercise(ExerciseType.SQUAT, null);
     }
 
 

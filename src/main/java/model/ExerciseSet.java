@@ -1,11 +1,11 @@
 package model;
 
-public class WorkoutSet {
+public class ExerciseSet {
 
-    private int repetitions;
-    private double weight;
+    private final int repetitions;
+    private final double weight;
 
-    public WorkoutSet(int repetitions, double weight) {
+    public ExerciseSet(int repetitions, double weight) {
         this.repetitions = repetitions;
         this.weight = weight;
     }
@@ -21,4 +21,5 @@ public class WorkoutSet {
     public double totalWeightPerSet(){
         return repetitions*weight;
     }
+
 }
