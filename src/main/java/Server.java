@@ -1,5 +1,4 @@
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -7,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import controller.Controller;
 import io.javalin.Javalin;
 import io.javalin.plugin.json.JavalinJackson;
-import io.javalin.plugin.json.JavalinJson;
 import model.*;
 import repository.ListRepository;
 import repository.Repository;
@@ -41,8 +39,8 @@ public class Server {
 
         app.post("/api/workouts", ctx -> {
             // some code
-           controller.save(ctx);
-            ctx.status(201);
+          Workout res = controller.save(ctx);
+           ctx.json(res).status(201);
         });
 
     }

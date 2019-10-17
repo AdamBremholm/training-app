@@ -38,7 +38,7 @@ public class Controller {
     public Workout save(Context context) {
         try{
             Workout workout = mapper.readValue(context.body(), Workout.class);
-            repository.save(workout);
+            return repository.save(workout);
         } catch (IOException e){
             context.json(e);
         }

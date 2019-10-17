@@ -35,6 +35,8 @@ public class Workout {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant endTime = null;
         private List<Exercise> exercises = null;
+        private Exercise heaviestExercise = null;
+        private int totalRepetitions = 0;
 
         @JsonCreator
         public Builder(@JsonProperty("user") User user){
@@ -57,6 +59,15 @@ public class Workout {
             return this;
         }
 
+        public Builder withHeaviestExercise(Exercise exercise){
+            this.heaviestExercise = exercise;
+            return this;
+        }
+        public Builder withHeaviestExercise(int totalRepetitions){
+            this.totalRepetitions = totalRepetitions;
+            return this;
+        }
+
         public Workout build(){
             return new Workout(this);
         }
@@ -69,8 +80,15 @@ public class Workout {
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
         this.exercises = builder.exercises;
-        this.heaviestExercise = calculateHeaviestExercisePerWorkout();
-        this.totalRepetitions = calculateTotalRepetitionsPerWorkout();
+        if (Optional.ofNullable(builder.heaviestExercise).isPresent())
+            this.heaviestExercise = builder.heaviestExercise;
+        else
+            this.heaviestExercise = calculateHeaviestExercisePerWorkout();
+
+        if (builder.totalRepetitions!=0)
+            this.totalRepetitions = builder.totalRepetitions;
+        else
+            this.totalRepetitions = calculateTotalRepetitionsPerWorkout();
     }
 
     public String getWorkoutId() {
