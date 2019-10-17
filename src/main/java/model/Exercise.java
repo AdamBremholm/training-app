@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+
 public class Exercise  {
 
     private final LiftType liftType;

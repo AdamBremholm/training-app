@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.time.Instant;
 import java.util.*;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonDeserialize(builder = Workout.Builder.class)
 public class Workout {
 
@@ -24,7 +23,7 @@ public class Workout {
     private final Exercise heaviestExercise;
     private final int totalRepetitions;
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+
     @JsonPOJOBuilder
     public static class Builder {
         private final User user;
@@ -63,7 +62,7 @@ public class Workout {
             this.heaviestExercise = exercise;
             return this;
         }
-        public Builder withHeaviestExercise(int totalRepetitions){
+        public Builder withTotalRepetitions(int totalRepetitions){
             this.totalRepetitions = totalRepetitions;
             return this;
         }

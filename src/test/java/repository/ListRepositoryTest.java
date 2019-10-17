@@ -2,7 +2,6 @@ package repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.Controller;
-import io.javalin.http.Context;
 import model.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,7 +98,7 @@ public class ListRepositoryTest {
     }
 
     @Mock
-    Context mockContext;
+    io.javalin.http.Context mockContext;
 
     @Test(expected = IllegalStateException.class)
     public void listThrowsIllegalStateExceptionIfNull(){

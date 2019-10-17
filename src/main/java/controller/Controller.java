@@ -6,7 +6,6 @@ import io.javalin.http.Context;
 import model.Workout;
 import repository.Repository;
 
-import java.io.IOException;
 import java.util.List;
 
 
@@ -39,8 +38,10 @@ public class Controller {
         try{
             Workout workout = mapper.readValue(context.body(), Workout.class);
             return repository.save(workout);
-        } catch (IOException e){
+        } catch (Exception e){
+            System.out.println(e);
             context.json(e);
+
         }
         return null;
     }
