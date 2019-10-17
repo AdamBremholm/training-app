@@ -1,5 +1,13 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.UUID;
+
+@JsonDeserialize(builder = User.Builder.class)
 public class User {
 
     private final String userId;
@@ -9,7 +17,7 @@ public class User {
     private final double weight;
     private final double height;
 
-
+    @JsonPOJOBuilder
     public static class Builder {
 
         private String userId;
@@ -19,21 +27,22 @@ public class User {
         private double weight;
         private double height;
 
-        public Builder(String username, String email, String password) {
+        @JsonCreator
+        public Builder(@JsonProperty("username") String username, @JsonProperty("email") String email, @JsonProperty("password") String password) {
             this.username = username;
             this.email = email;
             this.password = password;
         }
 
-        public Builder userId(String userId) {
+        public Builder withUserId(String userId) {
             this.userId = userId;
             return this;
         }
-        public Builder weight(double weight) {
+        public Builder withWeight(double weight) {
             this.weight = weight;
             return this;
         }
-        public Builder height(double height) {
+        public Builder withHeight(double height) {
             this.height = height;
             return this;
         }
@@ -74,5 +83,21 @@ public class User {
 
     public double getHeight() {
         return height;
+    }
+
+    public String randomId(){
+        return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", weight=" + weight +
+                ", height=" + height +
+                '}';
     }
 }

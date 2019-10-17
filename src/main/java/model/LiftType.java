@@ -1,6 +1,6 @@
 package model;
 
-public enum ExerciseType {
+public enum LiftType {
     SQUAT,
     BENCHPRESS,
     DEADLIFT,

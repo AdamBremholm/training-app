@@ -1,13 +1,11 @@
 package repository;
 
 import model.Exercise;
-import model.ExerciseSet;
+import model.Set;
 import model.Workout;
-
-
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ListRepository implements Repository {
@@ -29,13 +27,14 @@ public class ListRepository implements Repository {
 
     @Override
     public List<Workout> list() {
-        return null;
+       return Optional.ofNullable(workouts).orElseThrow(IllegalStateException::new);
     }
 
     @Override
     public Workout save(Workout workout) {
-        workouts.add(workout);
-        return workouts.get(size()-1);
+        Workout nonNullWorkOut = Optional.ofNullable(workout).orElseThrow(IllegalArgumentException::new);
+        Optional.ofNullable(workouts).ifPresent(workouts -> workouts.add(nonNullWorkOut));
+        return nonNullWorkOut;
     }
 
     @Override
@@ -69,8 +68,7 @@ public class ListRepository implements Repository {
     public double totalLiftedWeightByUser(String userId) {
         return findByUserId(userId)
                 .stream()
-                .map(Workout::liftedPerWorkOut)
-                .mapToDouble(Double::doubleValue)
+                .mapToDouble(Workout::liftedPerWorkOut)
                 .sum();
     }
 
@@ -78,14 +76,19 @@ public class ListRepository implements Repository {
     public double heaviestLiftByUser(String userId) {
         return findByUserId(userId)
                 .stream()
-                .map(Workout::heaviestSet)
-                .max(Comparator.comparing(ExerciseSet::getWeight))
-                .map(ExerciseSet::getWeight).orElseThrow(NoSuchElementException::new);
+                .map(Workout::getHeaviestExercise)
+                .map(Exercise::getHeaviestSet)
+                .mapToDouble(Set::getWeight)
+                .findAny()
+                .orElseThrow(NoSuchElementException::new);
     }
 
     @Override
-    public int totalLiftsByUser(String userid) {
-        return 0;
+    public int totalLiftsByUser(String userId) {
+        return findByUserId(userId)
+                .stream()
+                .mapToInt(Workout::getTotalRepetitions)
+                .sum();
     }
 
 }

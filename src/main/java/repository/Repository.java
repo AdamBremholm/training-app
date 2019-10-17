@@ -15,7 +15,7 @@ public interface Repository {
     int size();
     double totalLiftedWeightByUser(String userId);
     double heaviestLiftByUser(String userId);
-    int totalLiftsByUser(String userid);
+    int totalLiftsByUser(String userId);
 
 
 

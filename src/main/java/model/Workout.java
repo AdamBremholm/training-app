@@ -1,60 +1,76 @@
 package model;
 
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.time.Instant;
+import java.util.*;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonDeserialize(builder = Workout.Builder.class)
 public class Workout {
 
     private final String workoutId;
     private final User user;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private final Instant startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private final Instant endTime;
     private final List<Exercise> exercises;
+    private final Exercise heaviestExercise;
+    private final int totalRepetitions;
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonPOJOBuilder
     public static class Builder {
         private final User user;
 
         private String workoutId = "";
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant startTime = null;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant endTime = null;
         private List<Exercise> exercises = null;
-        private List<ExerciseSet> exerciseSets = null;
 
-        public Builder(User user){
+        @JsonCreator
+        public Builder(@JsonProperty("user") User user){
             this.user = user;
         }
-        public Builder workoutId(String workoutId){
+        public Builder withWorkoutId(String workoutId){
             this.workoutId = workoutId;
             return this;
         }
-        public Builder startTime(Instant startTime){
+        public Builder withStartTime(Instant startTime){
             this.startTime = startTime;
             return this;
         }
-        public Builder endTime(Instant endTime){
+        public Builder withEndTime(Instant endTime){
             this.endTime = endTime;
             return this;
         }
-        public Builder exercises(List<Exercise> exercises){
+        public Builder withExercises(List<Exercise> exercises){
             this.exercises = exercises;
             return this;
         }
 
         public Workout build(){
-            return new Workout(this, exercises);
+            return new Workout(this);
         }
 
     }
 
-    public Workout(Builder builder, List<Exercise> exercises) {
+    public Workout(Builder builder) {
         this.workoutId = builder.workoutId;
         this.user = builder.user;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
-        this.exercises = exercises;
+        this.exercises = builder.exercises;
+        this.heaviestExercise = calculateHeaviestExercisePerWorkout();
+        this.totalRepetitions = calculateTotalRepetitionsPerWorkout();
     }
 
     public String getWorkoutId() {
@@ -73,6 +89,22 @@ public class Workout {
         return endTime;
     }
 
+    public String randomId(){
+       return UUID.randomUUID().toString();
+    }
+
+    public List<Exercise> getExercises() {
+        return exercises;
+    }
+
+    public Exercise getHeaviestExercise() {
+        return heaviestExercise;
+    }
+
+    public int getTotalRepetitions() {
+        return totalRepetitions;
+    }
+
     public double liftedPerWorkOut() {
         double totalLiftedWeight = 0;
         if(Optional.ofNullable(exercises).isPresent()){
@@ -81,13 +113,33 @@ public class Workout {
         return totalLiftedWeight;
     }
 
-    public ExerciseSet heaviestSet() {
+    public Set calculateHeaviestSetInWorkout() {
        if(Optional.ofNullable(exercises).isPresent())
-       return exercises.stream()
-               .map(Exercise::getHeaviestSet)
-               .max(Comparator.comparing(ExerciseSet::getWeight))
-               .orElseThrow(NoSuchElementException::new);
-       else throw new IllegalStateException("exercises not initialized");
+           return exercises.stream()
+                   .map(Exercise::getHeaviestSet)
+                   .max(Comparator.comparing(Set::getWeight))
+                   .orElseThrow(NoSuchElementException::new);
+       else
+           throw new IllegalStateException("exercises not initialized");
+    }
+
+    public Exercise calculateHeaviestExercisePerWorkout() {
+        if(Optional.ofNullable(exercises).isPresent())
+            return exercises.stream()
+                    .max(Comparator.comparing(Exercise::getHeaviestSet))
+                    .orElseThrow(NoSuchElementException::new);
+        else
+            throw new IllegalStateException("exercises not initialized");
+    }
+
+    public int calculateTotalRepetitionsPerWorkout() {
+        if(Optional.ofNullable(exercises).isPresent())
+            return exercises.stream()
+                    .map(Exercise::getTotalRepetitions)
+                    .mapToInt(Integer::intValue)
+                    .sum();
+        else
+            throw new IllegalStateException("exercises not initialized");
     }
 
 

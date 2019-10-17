@@ -53,7 +53,7 @@ public class JPARepository implements Repository {
     }
 
     @Override
-    public int totalLiftsByUser(String userid) {
+    public int totalLiftsByUser(String userId) {
         return 0;
     }
 }

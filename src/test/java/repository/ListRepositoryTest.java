@@ -1,16 +1,12 @@
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+package repository;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import controller.Controller;
-import io.javalin.Javalin;
-import io.javalin.plugin.json.JavalinJackson;
-import io.javalin.plugin.json.JavalinJson;
+import io.javalin.http.Context;
 import model.*;
-import repository.ListRepository;
-import repository.Repository;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,51 +14,35 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class Server {
+import static org.junit.Assert.*;
+
+public class ListRepositoryTest {
 
 
+    private Repository repository;
+    private User mockUser1;
+    private User mockUser2;
+    private User mockUser3;
+    private List<Workout> workouts;
+    private static final double DELTA = 0.001;
 
+    @Before
+    public void setUp()  {
+        workouts = new ArrayList<>();
+        Controller controller = Controller.getInstance(ListRepository.getInstance(workouts), new ObjectMapper());
+        repository = controller.getRepository();
 
-    public static void main(String[] args) {
-        Javalin app = Javalin.create().start(7000);
-
-        ObjectMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule())
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                .build();
-
-        JavalinJackson.configure(mapper);
-
-        Controller controller = init(Controller.getInstance(ListRepository.getInstance(new ArrayList<>()),mapper));
-
-
-        app.get("/api/workouts", ctx -> {
-            ctx.json(controller.list());
-        });
-
-        app.post("/api/workouts", ctx -> {
-            // some code
-           controller.save(ctx);
-            ctx.status(201);
-        });
-
-    }
-
-    public static Controller init(Controller controller)  {
-
-        Repository repository = controller.getRepository();
-
-
-        User mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
+        mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
                 .withUserId("mockUserId")
                 .withHeight(180)
                 .withWeight(80)
                 .build();
-        User mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
+        mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
                 .withUserId("mockUserId2")
                 .withHeight(165)
                 .withWeight(60)
                 .build();
-        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
+        mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
                 .withUserId("mockUserId3")
                 .withHeight(110)
                 .withWeight(50)
@@ -116,7 +96,43 @@ public class Server {
         repository.save(mockWorkout3);
         repository.save(mockWorkout4);
 
-        return controller;
+    }
 
+    @Mock
+    Context mockContext;
+
+    @Test(expected = IllegalStateException.class)
+    public void listThrowsIllegalStateExceptionIfNull(){
+        Controller controller = Controller.getInstance(ListRepository.getInstance(null), new ObjectMapper());
+        repository = controller.getRepository();
+        repository.list();
+        fail();
+    }
+
+    @Test
+    public void totalWeightLiftedByUser() {
+        assertEquals(3990, repository.totalLiftedWeightByUser(mockUser1.getUserId()), DELTA);
+    }
+
+    @Test
+    public void heaviestLiftByUser() {
+        assertEquals(60, repository.heaviestLiftByUser(mockUser2.getUserId()), DELTA);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void heaviestLiftByUserThrowsIllegalStateExceptionIfExercisesAreNotInitialized() {
+        Workout mockWorkout5 = new Workout.Builder(mockUser2)
+                .withWorkoutId("mockWorkOutId5")
+                .withStartTime(Instant.parse("2019-10-02T15:15:30.00Z"))
+                .withEndTime(Instant.parse("2019-10-02T16:16:30.00Z"))
+                .withExercises(null)
+                .build();
+        repository.save(mockWorkout5);
+       fail();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void getHeaviestLiftedSetThrowsExceptionIfNotInitialized() {
+        Exercise exercise = new Exercise(LiftType.SQUAT, null);
     }
 }
