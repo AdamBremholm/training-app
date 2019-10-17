@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @JsonDeserialize(builder = User.Builder.class)
@@ -20,12 +21,13 @@ public class User {
     @JsonPOJOBuilder
     public static class Builder {
 
-        private String userId;
         private final String username;
         private final String email;
         private final String password;
-        private double weight;
-        private double height;
+
+        private double weight = 0;
+        private double height = 0;
+        private String userId = null;
 
         @JsonCreator
         public Builder(@JsonProperty("username") String username, @JsonProperty("email") String email, @JsonProperty("password") String password) {
@@ -34,10 +36,7 @@ public class User {
             this.password = password;
         }
 
-        public Builder withUserId(String userId) {
-            this.userId = userId;
-            return this;
-        }
+
         public Builder withWeight(double weight) {
             this.weight = weight;
             return this;
@@ -46,6 +45,11 @@ public class User {
             this.height = height;
             return this;
         }
+        public Builder withUserId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
         public User build(){
             return new User(this);
         }
@@ -53,12 +57,19 @@ public class User {
     }
 
     public User(Builder builder) {
-        this.userId = builder.userId;
+        this.userId = generateRandomUUIDifNotProvided(builder);
         this.username = builder.username;
         this.email = builder.email;
         this.password = builder.password;
         this.weight = builder.weight;
         this.height = builder.height;
+    }
+
+    private String generateRandomUUIDifNotProvided(Builder builder) {
+        if(Optional.ofNullable(builder.userId).isPresent())
+            return builder.userId;
+        else
+             return randomId();
     }
 
     public String getUserId() {

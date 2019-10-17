@@ -2,7 +2,6 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -27,34 +26,28 @@ public class Workout {
     @JsonPOJOBuilder
     public static class Builder {
         private final User user;
+        private final List<Exercise> exercises;
 
-        private String workoutId = "";
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant startTime = null;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant endTime = null;
-        private List<Exercise> exercises = null;
         private Exercise heaviestExercise = null;
         private int totalRepetitions = 0;
+        private String workoutId = null;
 
         @JsonCreator
-        public Builder(@JsonProperty("user") User user){
+        public Builder(@JsonProperty("user") User user, @JsonProperty("exercises") List<Exercise> exercises){
             this.user = user;
+            this.exercises = exercises;
         }
-        public Builder withWorkoutId(String workoutId){
-            this.workoutId = workoutId;
-            return this;
-        }
+
         public Builder withStartTime(Instant startTime){
             this.startTime = startTime;
             return this;
         }
         public Builder withEndTime(Instant endTime){
             this.endTime = endTime;
-            return this;
-        }
-        public Builder withExercises(List<Exercise> exercises){
-            this.exercises = exercises;
             return this;
         }
 
@@ -67,6 +60,12 @@ public class Workout {
             return this;
         }
 
+        public Builder withWorkoutId(String workoutId){
+            this.workoutId = workoutId;
+            return this;
+        }
+
+
         public Workout build(){
             return new Workout(this);
         }
@@ -74,20 +73,35 @@ public class Workout {
     }
 
     public Workout(Builder builder) {
-        this.workoutId = builder.workoutId;
         this.user = builder.user;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
         this.exercises = builder.exercises;
-        if (Optional.ofNullable(builder.heaviestExercise).isPresent())
-            this.heaviestExercise = builder.heaviestExercise;
-        else
-            this.heaviestExercise = calculateHeaviestExercisePerWorkout();
+        this.workoutId = generateRandomUUIDifNotProvided(builder);
+        this.heaviestExercise = calculateHeaviestExercisePerWorkoutIfNotProvided(builder);
+        this.totalRepetitions = calculateTotalRepetitionsIfNotProvided(builder);
 
-        if (builder.totalRepetitions!=0)
-            this.totalRepetitions = builder.totalRepetitions;
+    }
+
+    private String generateRandomUUIDifNotProvided(Builder builder) {
+        if(Optional.ofNullable(builder.workoutId).isPresent())
+            return builder.workoutId;
         else
-            this.totalRepetitions = calculateTotalRepetitionsPerWorkout();
+            return randomId();
+    }
+
+    public Exercise calculateHeaviestExercisePerWorkoutIfNotProvided(Builder builder){
+        if (Optional.ofNullable(builder.heaviestExercise).isPresent())
+            return builder.heaviestExercise;
+        else
+            return calculateHeaviestExercisePerWorkout();
+    }
+
+    public int calculateTotalRepetitionsIfNotProvided(Builder builder){
+        if (builder.totalRepetitions!=0)
+            return  builder.totalRepetitions;
+        else
+            return calculateTotalRepetitionsPerWorkout();
     }
 
     public String getWorkoutId() {
@@ -128,16 +142,6 @@ public class Workout {
           totalLiftedWeight = exercises.stream().map(Exercise::liftedPerExercise).mapToDouble(Double::doubleValue).sum();
         }
         return totalLiftedWeight;
-    }
-
-    public Set calculateHeaviestSetInWorkout() {
-       if(Optional.ofNullable(exercises).isPresent())
-           return exercises.stream()
-                   .map(Exercise::getHeaviestSet)
-                   .max(Comparator.comparing(Set::getWeight))
-                   .orElseThrow(NoSuchElementException::new);
-       else
-           throw new IllegalStateException("exercises not initialized");
     }
 
     public Exercise calculateHeaviestExercisePerWorkout() {

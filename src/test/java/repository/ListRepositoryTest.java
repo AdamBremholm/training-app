@@ -29,19 +29,20 @@ public class ListRepositoryTest {
     public void setUp()  {
         workouts = new ArrayList<>();
         Controller controller = Controller.getInstance(ListRepository.getInstance(workouts), new ObjectMapper());
-        repository = controller.getRepository();
+        Repository repository = controller.getRepository();
 
-        mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
+
+        User mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
                 .withUserId("mockUserId")
                 .withHeight(180)
                 .withWeight(80)
                 .build();
-        mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
+        User mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
                 .withUserId("mockUserId2")
                 .withHeight(165)
                 .withWeight(60)
                 .build();
-        mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
+        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
                 .withUserId("mockUserId3")
                 .withHeight(110)
                 .withWeight(50)
@@ -64,29 +65,21 @@ public class ListRepositoryTest {
         List<Exercise> exercisesB = Arrays.asList(squats, powerClean, press);
 
 
-        Workout mockWorkout1 = new Workout.Builder(mockUser1)
-                .withWorkoutId("mockWorkOutId1")
+        Workout mockWorkout1 = new Workout.Builder(mockUser1, exercisesA)
                 .withStartTime(Instant.parse("2019-10-03T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-03T10:16:30.00Z"))
-                .withExercises(exercisesA)
                 .build();
-        Workout mockWorkout2 = new Workout.Builder(mockUser2)
-                .withWorkoutId("mockWorkOutId2")
+        Workout mockWorkout2 = new Workout.Builder(mockUser2, exercisesB)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .withExercises(exercisesB)
                 .build();
-        Workout mockWorkout3 = new Workout.Builder(mockUser3)
-                .withWorkoutId("mockWorkOutId3")
+        Workout mockWorkout3 = new Workout.Builder(mockUser3, exercisesA)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .withExercises(exercisesA)
                 .build();
-        Workout mockWorkout4 = new Workout.Builder(mockUser1)
-                .withWorkoutId("mockWorkOutId4")
+        Workout mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-05T16:16:30.00Z"))
-                .withExercises(exercisesB)
                 .build();
 
 
@@ -120,11 +113,9 @@ public class ListRepositoryTest {
 
     @Test(expected = IllegalStateException.class)
     public void heaviestLiftByUserThrowsIllegalStateExceptionIfExercisesAreNotInitialized() {
-        Workout mockWorkout5 = new Workout.Builder(mockUser2)
-                .withWorkoutId("mockWorkOutId5")
+        Workout mockWorkout5 = new Workout.Builder(mockUser2, null)
                 .withStartTime(Instant.parse("2019-10-02T15:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-02T16:16:30.00Z"))
-                .withExercises(null)
                 .build();
         repository.save(mockWorkout5);
        fail();

@@ -7,14 +7,13 @@ import controller.Controller;
 import io.javalin.Javalin;
 import io.javalin.plugin.json.JavalinJackson;
 import model.*;
+import model.Set;
 import repository.ListRepository;
+import repository.MapRepository;
 import repository.Repository;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Server {
 
@@ -30,7 +29,7 @@ public class Server {
 
         JavalinJackson.configure(mapper);
 
-        Controller controller = init(Controller.getInstance(ListRepository.getInstance(new ArrayList<>()),mapper));
+        Controller controller = init(Controller.getInstance(MapRepository.getInstance(new HashMap<>()),mapper));
 
 
         app.get("/api/workouts", ctx -> {
@@ -83,29 +82,21 @@ public class Server {
         List<Exercise> exercisesB = Arrays.asList(squats, powerClean, press);
 
 
-        Workout mockWorkout1 = new Workout.Builder(mockUser1)
-                .withWorkoutId("mockWorkOutId1")
+        Workout mockWorkout1 = new Workout.Builder(mockUser1, exercisesA)
                 .withStartTime(Instant.parse("2019-10-03T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-03T10:16:30.00Z"))
-                .withExercises(exercisesA)
                 .build();
-        Workout mockWorkout2 = new Workout.Builder(mockUser2)
-                .withWorkoutId("mockWorkOutId2")
+        Workout mockWorkout2 = new Workout.Builder(mockUser2, exercisesB)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .withExercises(exercisesB)
                 .build();
-        Workout mockWorkout3 = new Workout.Builder(mockUser3)
-                .withWorkoutId("mockWorkOutId3")
+        Workout mockWorkout3 = new Workout.Builder(mockUser3, exercisesA)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .withExercises(exercisesA)
                 .build();
-        Workout mockWorkout4 = new Workout.Builder(mockUser1)
-                .withWorkoutId("mockWorkOutId4")
+        Workout mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-05T16:16:30.00Z"))
-                .withExercises(exercisesB)
                 .build();
 
 
