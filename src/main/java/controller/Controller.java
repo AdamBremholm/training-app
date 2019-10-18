@@ -1,15 +1,17 @@
 package controller;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import model.Workout;
 import repository.Repository;
+import view.JsonView;
 
 import java.util.List;
 
 
-public class Controller {
+public class Controller implements Initialisable {
 
     private final Repository repository;
     private final ObjectMapper mapper;
@@ -27,24 +29,20 @@ public class Controller {
         return repository;
     }
 
-
-
-    public List<Workout> list() {
-        return repository.list();
+    public Workout mapBodyToWorkout(Context context) throws JsonProcessingException {
+        return mapper.readValue(context.body(), Workout.class);
     }
 
 
-    public Workout save(Context context) {
-        try{
-            Workout workout = mapper.readValue(context.body(), Workout.class);
-            return repository.save(workout);
-        } catch (Exception e){
-            System.out.println(e);
-            context.json(e);
-
-        }
-        return null;
+    public void list(Context context) {
+       JsonView.displayListAsJson(repository.list(), context, 200);
     }
+
+
+    public Workout save(Context context) throws JsonProcessingException {
+        Workout workout = mapBodyToWorkout(context);
+        return repository.save(workout);
+}
 
 
     public Workout get(String userId) {

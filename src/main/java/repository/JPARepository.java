@@ -7,6 +7,13 @@ import java.util.List;
 
 public class JPARepository implements Repository {
 
+    private JPARepository(){
+
+    }
+    public static JPARepository getInstance(){
+        return new JPARepository();
+    }
+
     @Override
     public List<Workout> list() {
         return null;
