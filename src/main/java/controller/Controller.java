@@ -3,9 +3,9 @@ package controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.javalin.http.Context;
 import model.Workout;
 import repository.Repository;
+import spark.Request;
 import view.JsonView;
 
 import java.util.List;
@@ -29,18 +29,18 @@ public class Controller implements Initialisable {
         return repository;
     }
 
-    public Workout mapBodyToWorkout(Context context) throws JsonProcessingException {
-        return mapper.readValue(context.body(), Workout.class);
+    public Workout mapBodyToWorkout(Request request) throws JsonProcessingException {
+        return mapper.readValue(request.body(), Workout.class);
     }
 
 
-    public void list(Context context) {
-       JsonView.displayListAsJson(repository.list(), context, 200);
+    public String list(Request request) throws JsonProcessingException {
+      return JsonView.displayListAsJson(repository.list(), mapper);
     }
 
 
-    public Workout save(Context context) throws JsonProcessingException {
-        Workout workout = mapBodyToWorkout(context);
+    public Workout save(Request request) throws JsonProcessingException {
+        Workout workout = mapBodyToWorkout(request);
         return repository.save(workout);
 }
 

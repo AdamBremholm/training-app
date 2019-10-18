@@ -90,8 +90,7 @@ public class ListRepositoryTest {
 
     }
 
-    @Mock
-    io.javalin.http.Context mockContext;
+
 
     @Test(expected = IllegalStateException.class)
     public void listThrowsIllegalStateExceptionIfNull(){

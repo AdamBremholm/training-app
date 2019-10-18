@@ -1,6 +1,5 @@
 package controller;
 
-import io.javalin.http.Context;
 import model.User;
 import model.Workout;
 
@@ -40,13 +39,11 @@ public class ControllerTest {
     public void getRepository() {
     }
 
-    @Mock
-    Context mockedContext;
+
 
     @Test
     public void list() {
-        Mockito.when(mockedContext.queryParam("/api/workouts")).thenReturn("tjaba");
-        assertEquals("tjaba", mockedContext.queryParam("/api/workouts").toString());
+
     }
 
     @Test

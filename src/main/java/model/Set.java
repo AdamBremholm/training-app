@@ -2,7 +2,6 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.jetbrains.annotations.NotNull;
 
 public class Set implements Comparable<Set> {
 
@@ -29,7 +28,7 @@ public class Set implements Comparable<Set> {
 
 
     @Override
-    public int compareTo(@NotNull Set set) {
+    public int compareTo( Set set) {
         double result = this.getWeight()-set.getWeight();
         if(result>0)
             return 1;
