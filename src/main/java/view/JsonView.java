@@ -8,11 +8,11 @@ import java.util.List;
 
 public class JsonView {
 
-    public static String displayListAsJson(List<Workout> result, ObjectMapper mapper) throws JsonProcessingException {
+    public static String workoutListAsJson(List<Workout> result, ObjectMapper mapper) throws JsonProcessingException {
        return mapper.writeValueAsString(result);
     }
 
-    public static String displayWorkoutAsJson(Workout result, ObjectMapper mapper) throws JsonProcessingException {
+    public static String workoutAsJson(Workout result, ObjectMapper mapper) throws JsonProcessingException {
         return mapper.writeValueAsString(result);
     }
 }

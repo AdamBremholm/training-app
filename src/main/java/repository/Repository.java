@@ -8,7 +8,7 @@ public interface Repository {
 
     List<Workout> list();
     Workout save(Workout workout);
-    Workout get(String userId);
+    Workout get(String workoutId);
     Workout update(Workout workout);
     void delete(String workoutId);
     List<Workout> findByUserId(String userId);

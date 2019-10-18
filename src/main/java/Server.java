@@ -1,4 +1,5 @@
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.Controller;
@@ -8,10 +9,14 @@ import static spark.Spark.*;
 import model.*;
 import spark.Spark;
 
+import java.util.NoSuchElementException;
+
 
 public class Server {
 
 
+    private static final int HTTP_BAD_REQUEST = 400;
+    private static final int HTTP_NOT_FOUND = 404;
 
 
     public static void main(String[] args) {
@@ -25,29 +30,67 @@ public class Server {
 
 
         get("/api/workouts", (request, response) -> {
-            response.status(200);
-            response.type("application/json");
-            return controller.list(request);
+                response.status(200);
+                response.type("application/json");
+                return controller.list();
+        });
+
+        post("/api/workouts", (request, response) -> {
+            try {
+                response.status(201);
+                response.type("application/json");
+                return controller.save(request);
+            } catch (JsonParseException jpe) {
+                response.status(HTTP_BAD_REQUEST);
+                return jpe.toString();
+            }
+        });
+
+        get("/api/workouts/:workoutId", (request, response) -> {
+            try {
+                response.status(200);
+                response.type("application/json");
+                return controller.get(request);
+            } catch (JsonParseException jpe) {
+                response.status(HTTP_BAD_REQUEST);
+                return jpe.toString();
+            } catch (NoSuchElementException nse){
+                response.status(HTTP_NOT_FOUND);
+                return nse.toString();
+            }
+        });
+
+        put("/api/workouts/:workoutId", (request, response) -> {
+            try {
+                response.status(200);
+                response.type("application/json");
+                return controller.update(request);
+            } catch (JsonParseException jpe) {
+                response.status(HTTP_BAD_REQUEST);
+                return jpe.toString();
+            } catch (NoSuchElementException nse){
+                response.status(HTTP_NOT_FOUND);
+                return nse.toString();
+            }
+        });
+
+        delete("/api/workouts/:workoutId", (request, response) -> {
+            try {
+                response.status(204);
+                response.type("application/json");
+                controller.delete(request.params("workoutId"));
+                return "";
+            } catch (JsonParseException jpe) {
+                response.status(HTTP_BAD_REQUEST);
+                return jpe.toString();
+            } catch (NoSuchElementException nse){
+                response.status(HTTP_NOT_FOUND);
+                return nse.toString();
+            }
         });
 
 
 
-/*
-        app.get("/api/workouts", controller::list);
-
-        app.post("/api/workouts", ctx -> {
-            // some code
-          Workout res = controller.save(ctx);
-           ctx.json(res).status(201);
-        });
-        app.exception(JsonProcessingException.class, (e, ctx) -> {
-            ctx.result(e.getMessage()).status(501);
-        });
-        app.exception(Exception.class, (e, ctx) -> {
-            ctx.result(e.getMessage()).status(500);
-        });
-
- */
 
     }
 

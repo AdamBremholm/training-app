@@ -25,7 +25,7 @@ public class JPARepository implements Repository {
     }
 
     @Override
-    public Workout get(String userId) {
+    public Workout get(String workoutId) {
         return null;
     }
 
