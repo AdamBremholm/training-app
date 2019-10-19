@@ -1,9 +1,12 @@
 package controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import model.User;
-import model.Workout;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import model.*;
 
+import model.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,43 +15,97 @@ import org.mockito.MockitoAnnotations;
 import repository.MapRepository;
 import spark.Request;
 
-import java.util.HashMap;
-import java.util.List;
+import java.time.Instant;
+import java.util.*;
+
 import static org.junit.Assert.*;
 
 public class ControllerTest {
 
     private MapRepository repository;
+    private Controller controller;
+    private ObjectMapper mapper;
     private User mockUser1;
     private User mockUser2;
     private User mockUser3;
     private List<Workout> workouts;
     private static final double DELTA = 0.001;
-    Controller controller;
-    private String jsonBodySave;
+
+    JsonNode mockWorkoutJsonNode;
+
+    private String jsonBodySave2;
+    private String jsonBodyUpdate1;
+    private String jsonBodyUpdate2;
+    private String jsonBodyUpdate3;
+    private String jsonBodyUpdate4;
     private String mockWorkOutId;
 
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         controller = ControllerFactory.getMapRepositoryController();
         Initialisable.populate(controller);
         repository = (MapRepository) controller.getRepository();
+        mapper = controller.getMapper();
         MockitoAnnotations.initMocks(this);
-        jsonBodySave = "{\"workoutId\":\"7b244503-82fd-4cf3-af08-2ffefe5a9320\",\"user\":{\"userId\":\"SKAPAD\"," +
-                "\"username\":\"mrMock\",\"email\":\"mock@mockmail.com\",\"password\":\"mr\",\"weight\":80,\"height\":180}," +
-                "\"startTime\":\"2019-10-03 10:15:30\",\"endTime\":\"2019-10-03 10:16:30\"," +
-                "\"exercises\":[{\"liftType\":\"SQUAT\",\"sets\":[{\"repetitions\":5,\"weight\":60},{\"repetitions\":5," +
-                "\"weight\":60},{\"repetitions\":5,\"weight\":60}],\"heaviestSet\":{\"repetitions\":5,\"weight\":60}," +
-                "\"totalRepetitions\":15},{\"liftType\":\"BENCHPRESS\",\"sets\":[{\"repetitions\":5,\"weight\":55}," +
-                "{\"repetitions\":5,\"weight\":55},{\"repetitions\":5,\"weight\":55}],\"heaviestSet\":{\"repetitions\":5," +
-                "\"weight\":55},\"totalRepetitions\":15},{\"liftType\":\"DEADLIFT\",\"sets\":[{\"repetitions\":5," +
-                "\"weight\":60}],\"heaviestSet\":{\"repetitions\":5,\"weight\":60},\"totalRepetitions\":5}]," +
-                "\"heaviestExercise\":{\"liftType\":\"SQUAT\",\"sets\":[{\"repetitions\":5,\"weight\":60}," +
-                "{\"repetitions\":5,\"weight\":60},{\"repetitions\":5,\"weight\":60}],\"heaviestSet\":{\"repetitions\":5," +
-                "\"weight\":60},\"totalRepetitions\":15},\"totalRepetitions\":35}";
 
-        mockWorkOutId = "7b244503-82fd-4cf3-af08-2ffefe5a9320";
+        User mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
+                .withUserId("mockUserId4")
+                .withHeight(110)
+                .withWeight(50)
+                .build();
+
+        Set setA = new Set(5, 60);
+        Set setB = new Set(5, 55);
+        Set setC = new Set(5, 60);
+
+        Exercise squats = new Exercise(LiftType.SQUAT, Arrays.asList(setA, setA, setA));
+        Exercise benchPress = new Exercise(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB));
+        Exercise deadLift = new Exercise(LiftType.DEADLIFT, Collections.singletonList(setC));
+
+        List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
+
+        Workout mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
+                .withWorkoutId("7b244503-82fd-4cf3-af08-2ffefe5a9320")
+                .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
+                .build();
+
+        mockWorkoutJsonNode = workoutToJsonNode(mockWorkout3);
+
+        mockWorkOutId = mockWorkout3.getWorkoutId();
+
     }
+
+    public JsonNode workoutToJsonNode(Workout workout){
+       return mapper.convertValue(workout, JsonNode.class);
+            }
+
+     public JsonNode removeField(JsonNode jsonNode, String removeField){
+         for (JsonNode childNode : jsonNode) {
+             if (childNode instanceof ObjectNode) {
+                 if (childNode.has(removeField)) {
+                     ObjectNode object = (ObjectNode) childNode;
+                     object.remove(removeField);
+                 }
+             }
+         }
+         return jsonNode;
+     }
+
+    public JsonNode replaceField(JsonNode jsonNode, String originalField, String valueToReplace){
+        for (JsonNode childNode : jsonNode) {
+            if (childNode instanceof ObjectNode) {
+                if (childNode.has(originalField)) {
+                    ObjectNode object = (ObjectNode) childNode;
+                    object.put(originalField, valueToReplace);
+                }
+            }
+        }
+        return jsonNode;
+    }
+
+
 
     @Test
     public void getInstanceReturnsNewObject() {
@@ -85,7 +142,7 @@ public class ControllerTest {
 
     @Test
     public void saveConvertsJsonBodyToObjectAndInputsIntoRepository() {
-        Mockito.when(mockRequest.body()).thenReturn(jsonBodySave);
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         try {
             controller.save(mockRequest);
         } catch (JsonProcessingException e) {
@@ -97,11 +154,9 @@ public class ControllerTest {
 
     @Test
     public void saveCreatesWorkOutIdIfNoneProvided() {
-        int index = jsonBodySave.indexOf(",");
-        String toBeReplaced = jsonBodySave.substring(1, index+1);
-        String replacement = "";
-        String replacedString = jsonBodySave.replace(toBeReplaced, replacement);
-        Mockito.when(mockRequest.body()).thenReturn(jsonBodySave);
+
+        removeField(mockWorkoutJsonNode, "workoutId");
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         try {
            String res = controller.save(mockRequest);
@@ -114,16 +169,13 @@ public class ControllerTest {
     }
 
     @Test
-    public void saveCreatesUserIdIfNoneProvided() {
+    public void saveCreatesUserIdIfNoneProvided() throws JsonProcessingException {
 
-        Mockito.when(mockRequest.body()).thenReturn(jsonBodySave);
+        removeField(mockWorkoutJsonNode, "userId");
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
-        try {
-            String res = controller.save(mockRequest);
-            assertTrue(res.contains("userId"));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        String res = controller.save(mockRequest);
+        assertTrue(res.contains("userId"));
         Mockito.verify(mockRequest).body();
         assertEquals(5, repository.size());
 
@@ -139,7 +191,7 @@ public class ControllerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void saveWithExistingUserIdThrowsException() throws JsonProcessingException {
-        Mockito.when(mockRequest.body()).thenReturn(jsonBodySave);
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         controller.save(mockRequest);
         controller.save(mockRequest);
@@ -148,9 +200,19 @@ public class ControllerTest {
 
     @Test
     public void getRetrievesObjectByWorkOutId() throws JsonProcessingException {
-        Mockito.when(mockRequest.body()).thenReturn(jsonBodySave);
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest);
         Mockito.when(mockRequest.params("workoutId")).thenReturn(mockWorkOutId);
+        String res = null;
+        res = controller.get(mockRequest);
+        assertNotNull(res);
+    }
+
+    @Test (expected = NoSuchElementException.class)
+    public void getThrowsNoSuchElementExceptionIfNotFound() throws JsonProcessingException {
+        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        controller.save(mockRequest);
+        Mockito.when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
         String res = null;
         res = controller.get(mockRequest);
         assertNotNull(res);

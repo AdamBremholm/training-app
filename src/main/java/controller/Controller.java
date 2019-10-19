@@ -34,6 +34,10 @@ public class Controller implements Initialisable {
         return repository;
     }
 
+    public ObjectMapper getMapper() {
+        return mapper;
+    }
+
     public Workout mapBodyToWorkout(Request request) throws JsonProcessingException {
         return mapper.readValue(request.body(), Workout.class);
     }
