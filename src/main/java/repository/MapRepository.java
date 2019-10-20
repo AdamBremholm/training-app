@@ -1,5 +1,6 @@
 package repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import model.Exercise;
 import model.Set;
 import model.Workout;
@@ -47,7 +48,7 @@ public class MapRepository implements Repository {
     }
 
     @Override
-    public Workout update(Workout workout) {
+    public Workout update(Workout workout)  {
      return null;
     }
 

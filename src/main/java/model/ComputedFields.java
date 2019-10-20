@@ -1,6 +1,6 @@
 package model;
 
-public enum ComputedJsonFields {
+public enum ComputedFields {
 
     heaviestSet,
     totalRepetitions,

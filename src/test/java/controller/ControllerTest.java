@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import repository.MapRepository;
 import spark.Request;
+import spark.Response;
 
 import java.time.Instant;
 import java.util.*;
@@ -81,6 +82,9 @@ public class ControllerTest {
     @Mock
     Request mockRequest;
 
+    @Mock
+    Response mockResponse;
+
 
 
 
@@ -103,11 +107,13 @@ public class ControllerTest {
     }
 
 
+
+
     @Test
     public void list() {
         String result = null;
         try {
-            result = controller.list();
+            result = controller.list(mockRequest, mockResponse);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -196,74 +202,81 @@ public class ControllerTest {
 
     @Test
     public void removeFieldInWorkout(){
-        assertTrue(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
-        removeFieldInObjectNodes(mockWorkoutJsonNode, JsonFields.startTime.toString());
-        assertFalse(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
+        assertTrue(mockWorkoutJsonNode.has(Fields.startTime.toString()));
+        removeFieldInObjectNodes(mockWorkoutJsonNode, Fields.startTime.toString());
+        assertFalse(mockWorkoutJsonNode.has(Fields.startTime.toString()));
     }
 
     @Test
     public void removeNestedFieldInWorkout(){
-        assertNotNull(mockWorkoutJsonNode.findValue(JsonFields.email.toString()));
-        removeFieldInObjectNodes(mockWorkoutJsonNode, JsonFields.email.toString());
-        assertNull((mockWorkoutJsonNode.findValue(JsonFields.email.toString())));
+        assertNotNull(mockWorkoutJsonNode.findValue(Fields.email.toString()));
+        removeFieldInObjectNodes(mockWorkoutJsonNode, Fields.email.toString());
+        assertNull((mockWorkoutJsonNode.findValue(Fields.email.toString())));
     }
 
     @Test
     public void replaceNestedFieldInWorkOut1(){
-        assertTrue(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
-        replaceFieldInWorkout(mockWorkoutJsonNode, JsonFields.startTime.toString(), "newTime");
-        assertEquals("newTime", (mockWorkoutJsonNode.findValue(JsonFields.startTime.toString()).asText()));
+        assertTrue(mockWorkoutJsonNode.has(Fields.startTime.toString()));
+        replaceFieldInWorkout(mockWorkoutJsonNode, Fields.startTime.toString(), "newTime");
+        assertEquals("newTime", (mockWorkoutJsonNode.findValue(Fields.startTime.toString()).asText()));
     }
 
     @Test
     public void replaceFieldInUser() {
-        assertTrue(mockWorkoutJsonNode.get(JsonFields.user.toString()).has(JsonFields.email.toString()));
-        replaceFieldInUser(mockWorkoutJsonNode, JsonFields.email.toString(), "hej@hotbrev");
-        assertEquals("hej@hotbrev", mockWorkoutJsonNode.get(JsonFields.user.toString()).get(JsonFields.email.toString()).asText());
+        assertTrue(mockWorkoutJsonNode.get(Fields.user.toString()).has(Fields.email.toString()));
+        replaceFieldInUser(mockWorkoutJsonNode, Fields.email.toString(), "hej@hotbrev");
+        assertEquals("hej@hotbrev", mockWorkoutJsonNode.get(Fields.user.toString()).get(Fields.email.toString()).asText());
     }
 
     @Test
     public void replaceFieldInExercise() {
-        assertTrue(mockWorkoutJsonNode.get(JsonFields.exercises.toString()).get(0).has(JsonFields.liftType.toString()));
-        replaceFieldInExercise(mockWorkoutJsonNode, "1e", JsonFields.liftType.toString(), LiftType.BENCHPRESS.toString() );
-        assertEquals(LiftType.BENCHPRESS.toString(), mockWorkoutJsonNode.get(JsonFields.exercises.toString()).get(0).get(JsonFields.liftType.toString()).asText());
+        assertTrue(mockWorkoutJsonNode.get(Fields.exercises.toString()).get(0).has(Fields.liftType.toString()));
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", Fields.liftType.toString(), LiftType.BENCHPRESS.toString() );
+        assertEquals(LiftType.BENCHPRESS.toString(), mockWorkoutJsonNode.get(Fields.exercises.toString()).get(0).get(Fields.liftType.toString()).asText());
+    }
+
+    @Test
+    public void replaceFieldInSet() {
+        assertEquals("5", mockWorkoutJsonNode.get(Fields.exercises.toString()).get(0).get(Fields.sets.toString()).get(0).get(Fields.repetitions.toString()).asText());
+        replaceFieldInSet(mockWorkoutJsonNode, "1e", "1s", Fields.repetitions.toString(), "6" );
+        assertEquals("6", mockWorkoutJsonNode.get(Fields.exercises.toString()).get(0).get(Fields.sets.toString()).get(0).get(Fields.repetitions.toString()).asText());
     }
 
     @Test(expected = NumberFormatException.class)
     public void replaceSetValueThrowsExceptionWhenNegative() {
-        replaceFieldInSet(mockWorkoutJsonNode, "1e", "1s", JsonFields.repetitions.toString(), "-5");
+        replaceFieldInSet(mockWorkoutJsonNode, "1e", "1s", Fields.repetitions.toString(), "-5");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise() {
-        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.heaviestExercise.toString(), "yeee" );
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedFields.heaviestExercise.toString(), "yeee" );
         fail();
     }
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise2() {
-        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.heaviestSet.toString(), "yeee" );
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedFields.heaviestSet.toString(), "yeee" );
         fail();
     }
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise3() {
-        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.totalRepetitions.toString(), "yeee" );
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedFields.totalRepetitions.toString(), "yeee" );
         fail();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout() {
-        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.heaviestExercise.toString(), "yeee" );
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedFields.heaviestExercise.toString(), "yeee" );
         fail();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout2() {
-        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.heaviestSet.toString(), "yeee" );
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedFields.heaviestSet.toString(), "yeee" );
         fail();
     }
     @Test(expected = IllegalArgumentException.class)
     public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout3() {
-        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.totalRepetitions.toString(), "yeee" );
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedFields.totalRepetitions.toString(), "yeee" );
         fail();
     }
 
@@ -331,7 +344,7 @@ public class ControllerTest {
     }
 
     private void replaceFieldInUser(JsonNode jsonNode, String userField, String valueToReplace) {
-       JsonNode userNode = Optional.ofNullable(jsonNode).map(jsonNode1 -> jsonNode.get(JsonFields.user.toString())).orElseThrow(() -> new NoSuchElementException(JsonFields.user.toString()));
+       JsonNode userNode = Optional.ofNullable(jsonNode).map(jsonNode1 -> jsonNode.get(Fields.user.toString())).orElseThrow(() -> new NoSuchElementException(Fields.user.toString()));
        if (userNode instanceof ObjectNode && userNode.has(userField)){
            ObjectNode object = (ObjectNode) userNode;
            object.put(userField, valueToReplace);
@@ -361,7 +374,7 @@ public class ControllerTest {
     }
 
     private boolean isComputed(String exerciseField) {
-        for (ComputedJsonFields field : ComputedJsonFields.values()) {
+        for (ComputedFields field : ComputedFields.values()) {
             if (exerciseField.equals(field.toString())) {
                 return true;
             }
@@ -371,32 +384,30 @@ public class ControllerTest {
 
     private void replaceFieldInSet(JsonNode jsonNode, String exerciseId, String setId, String setField, String valueToReplace){
 
-        if(setField.equals(JsonFields.repetitions.toString())){
+        if(setField.equals(Fields.repetitions.toString())){
             if(!isPositiveInteger(valueToReplace))
                 throw new NumberFormatException("only positive integers allowed");
         }
-        else if (setField.equals(JsonFields.weight.toString())){
+        else if (setField.equals(Fields.weight.toString())){
             if(!isPositiveDouble(valueToReplace))
                 throw new NumberFormatException("only positive integers and decimals allowed");
         }
 
         JsonNode exercise = getExerciseByExerciseId(jsonNode, exerciseId);
-        ArrayNode setArray = (ArrayNode) Optional.ofNullable(jsonNode)
-                .map(jsonNode1 -> jsonNode.get(JsonFields.sets.toString()))
+        ArrayNode setArray = (ArrayNode) Optional.ofNullable(exercise)
+                .map(jsonNode1 -> jsonNode1.get(Fields.sets.toString()))
                 .filter(e -> e instanceof ArrayNode)
-                .orElseThrow(() -> new NoSuchElementException(JsonFields.sets.toString()));
+                .orElseThrow(() -> new NoSuchElementException(Fields.sets.toString()));
 
         JsonNode set;
         for (JsonNode s : setArray) {
-          if(s instanceof ObjectNode && s.has(JsonFields.setId.toString()) && s.get(JsonFields.setId.toString()).equals(setId)) {
+          if(s instanceof ObjectNode && s.has(Fields.setId.toString()) && s.get(Fields.setId.toString()).asText().equals(setId) && s.has(setField)) {
+              ((ObjectNode)s).put(setField, valueToReplace);
+              return;
           }
         }
 
-        if(exercise instanceof ObjectNode && ((ObjectNode)exercise).has(JsonFields.sets.toString())){
-
-        }
-        else
-            throw new NoSuchElementException(setField);
+        throw new NoSuchElementException(setField);
 
     }
 
@@ -459,7 +470,7 @@ public class ControllerTest {
                 .orElseThrow(() -> new NoSuchElementException("exercises"));
 
         for (JsonNode node : exerciseArray) {
-            if(node instanceof ObjectNode && ((ObjectNode)node).get(JsonFields.exerciseId.toString()).asText().equals(exerciseId)) {
+            if(node instanceof ObjectNode && ((ObjectNode)node).get(Fields.exerciseId.toString()).asText().equals(exerciseId)) {
                 return node;
             }
         }

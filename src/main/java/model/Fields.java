@@ -1,6 +1,6 @@
 package model;
 
-public enum JsonFields {
+public enum Fields {
 
     exercises,
     sets,

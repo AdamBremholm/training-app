@@ -1,20 +1,25 @@
 package controller;
 
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.Workout;
 import repository.Repository;
 import spark.Request;
+import spark.Response;
 import view.JsonView;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+
 
 public class Controller implements Initialisable {
 
+    private static final int HTTP_NOT_FOUND = 404;
     private final Repository repository;
     private final ObjectMapper mapper;
     private static final String IN_PARAM_NULL = "one of the methods in parameters is null";
@@ -43,30 +48,72 @@ public class Controller implements Initialisable {
     }
 
 
-    public String list() throws JsonProcessingException {
-      return JsonView.workoutListAsJson(repository.list(), mapper);
+    public String list(Request request, Response response) throws JsonProcessingException {
+        response.status(200);
+        response.type("application/json");
+        return JsonView.workoutListAsJson(repository.list(), mapper);
     }
 
 
-    public String save(Request request) throws JsonProcessingException {
-        Workout workout = mapBodyToWorkout(request);
-        return JsonView.workoutAsJson(repository.save(workout), mapper);
-}
-
-
-    public String get(Request request) throws JsonProcessingException, NoSuchElementException {
-       String workoutId = Optional.ofNullable(request.params("workoutId")).orElseThrow(IllegalArgumentException::new);
-       return JsonView.workoutAsJson(repository.get(workoutId), mapper);
+    public String save(Request request, Response response)  {
+        Workout workout = null;
+        try {
+            workout = mapBodyToWorkout(request);
+            response.status(201);
+            response.type("application/json");
+            return JsonView.workoutAsJson(repository.save(workout), mapper);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            response.status(HTTP_BAD_REQUEST);
+            return e.toString();
+        }
     }
 
 
-    public Workout update(Request request) throws JsonProcessingException {
-        return null;
+    public String get(Request request, Response response)  {
+
+        try {
+            response.status(200);
+            response.type("application/json");
+            String workoutId = Optional.ofNullable(request.params("workoutId")).orElseThrow(IllegalArgumentException::new);
+            return JsonView.workoutAsJson(repository.get(workoutId), mapper);
+        } catch (JsonProcessingException jpe) {
+            response.status(HTTP_BAD_REQUEST);
+            return jpe.toString();
+        } catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
+
+    }
+
+    public String update(Request request, Response response)  {
+        try {
+            response.status(200);
+            response.type("application/json");
+            return JsonView.workoutAsJson(repository.update(null), mapper);
+        } catch (JsonProcessingException jpe) {
+            response.status(HTTP_BAD_REQUEST);
+            return jpe.toString();
+        } catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
     }
 
 
-    public void delete(String workoutId) throws JsonProcessingException, NoSuchElementException {
-        repository.delete(workoutId);
+    public String delete(Request request, Response response)  {
+        try {
+            response.status(204);
+            response.type("application/json");
+            String workoutId = Optional.ofNullable(request.params("workoutId")).orElseThrow(IllegalArgumentException::new);
+            repository.delete(workoutId);
+            return "";
+        }  catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
+
     }
 
 
