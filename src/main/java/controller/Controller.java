@@ -63,7 +63,6 @@ public class Controller implements Initialisable {
             response.type("application/json");
             return JsonView.workoutAsJson(repository.save(workout), mapper);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
             response.status(HTTP_BAD_REQUEST);
             return e.toString();
         }

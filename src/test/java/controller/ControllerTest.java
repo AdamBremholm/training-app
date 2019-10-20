@@ -3,6 +3,7 @@ package controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
@@ -125,11 +126,7 @@ public class ControllerTest {
     @Test
     public void saveConvertsJsonBodyToObjectAndInputsIntoRepository() {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        try {
-            controller.save(mockRequest);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        controller.save(mockRequest, mockResponse);
         Mockito.verify(mockRequest).body();
         assertNotNull(repository.get(mockWorkOutId));
     }
@@ -140,64 +137,60 @@ public class ControllerTest {
         removeFieldInObjectNodes(mockWorkoutJsonNode, "workoutId");
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
-        try {
-           String res = controller.save(mockRequest);
-            assertTrue(res.contains("workoutId"));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        String res = controller.save(mockRequest, mockResponse);
+        assertTrue(res.contains("workoutId"));
         assertEquals(5, repository.size());
 
     }
 
     @Test
-    public void saveCreatesUserIdIfNoneProvided() throws JsonProcessingException {
+    public void saveCreatesUserIdIfNoneProvided() {
 
         removeFieldInObjectNodes(mockWorkoutJsonNode, "userId");
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
-        String res = controller.save(mockRequest);
+        String res = controller.save(mockRequest, mockResponse);
         assertTrue(res.contains("userId"));
         Mockito.verify(mockRequest).body();
         assertEquals(5, repository.size());
 
     }
 
-    @Test(expected = JsonProcessingException.class)
-    public void saveThrowsExceptionIfIncorrectJsonIsInputted() throws JsonProcessingException {
+    @Test
+    public void saveThrowsExceptionIfIncorrectJsonIsInputted()  {
         Mockito.when(mockRequest.body()).thenReturn("");
         assertEquals(4, repository.size());
-        String res = controller.save(mockRequest);
-        fail();
+        String res = controller.save(mockRequest, mockResponse);
+        assertEquals(4, repository.size());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void saveWithExistingUserIdThrowsException() throws JsonProcessingException {
+    public void saveWithExistingUserIdThrowsException() {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
-        controller.save(mockRequest);
-        controller.save(mockRequest);
+        controller.save(mockRequest, mockResponse);
+        controller.save(mockRequest, mockResponse);
         fail();
     }
 
     @Test
-    public void getRetrievesObjectByWorkOutId() throws JsonProcessingException {
+    public void getRetrievesObjectByWorkOutId()  {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        controller.save(mockRequest);
+        controller.save(mockRequest, mockResponse);
         Mockito.when(mockRequest.params("workoutId")).thenReturn(mockWorkOutId);
         String res = null;
-        res = controller.get(mockRequest);
+        res = controller.get(mockRequest, mockResponse);
         assertNotNull(res);
     }
 
-    @Test (expected = NoSuchElementException.class)
-    public void getThrowsNoSuchElementExceptionIfNotFound() throws JsonProcessingException {
+    @Test
+    public void getThrowsNoSuchElementExceptionIfNotFound()  {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        controller.save(mockRequest);
+        controller.save(mockRequest, mockResponse);
         Mockito.when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
         String res = null;
-        res = controller.get(mockRequest);
-        assertNotNull(res);
+        res = controller.get(mockRequest, mockResponse);
+        assertEquals("java.util.NoSuchElementException", res);
     }
 
     @Test
