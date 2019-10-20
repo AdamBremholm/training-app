@@ -1,28 +1,98 @@
 package model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
-
+@JsonDeserialize(builder = Exercise.Builder.class)
 public class Exercise  {
 
+    private String exerciseId;
     private final LiftType liftType;
     private final List<Set> sets;
     private final Set heaviestSet;
     private final int totalRepetitions;
 
-    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public Exercise(@JsonProperty("liftType") LiftType liftType, @JsonProperty("sets") List<Set> sets) {
-        this.liftType = liftType;
-        this.sets = sets;
-        this.heaviestSet = calculateHeaviestLiftedSet();
-        this.totalRepetitions = calculateTotalRepetitions();
+
+    @JsonPOJOBuilder
+    public static class Builder {
+
+        private final LiftType liftType;
+        private final List<Set> sets;
+
+        private String exerciseId = null;
+        private int totalRepetitions = 0;
+        private Set heaviestSet = null;
+
+        @JsonCreator
+        public Builder(@JsonProperty("liftType") LiftType liftType, @JsonProperty("sets") List<Set> sets) {
+            this.liftType = liftType;
+            this.sets = sets;
+
+        }
+
+        public Builder withExerciseId(String exerciseId) {
+           this.exerciseId = exerciseId;
+            return this;
+        }
+
+        public Builder withTotalRepetitions(int totalRepetitions) {
+            this.totalRepetitions = totalRepetitions;
+            return this;
+        }
+
+        public Builder withHeaviestSet(Set heaviestSet) {
+            this.heaviestSet = heaviestSet;
+            return this;
+        }
+
+
+        public Exercise build(){
+            return new Exercise(this);
+        }
+
+    }
+
+    public Exercise(Builder builder) {
+        this.exerciseId = generateRandomUUIDifNotProvided(builder);
+        this.liftType = builder.liftType;
+        this.sets = builder.sets;
+        this.totalRepetitions = calculateTotalRepetitionsIfNotProvided(builder);
+        this.heaviestSet = calculateHeaviestLiftedSetIfNotProvided(builder);
+    }
+
+
+
+    private Set calculateHeaviestLiftedSetIfNotProvided(Builder builder) {
+        if(Optional.ofNullable(builder.heaviestSet).isPresent())
+            return builder.heaviestSet;
+        else
+            return calculateHeaviestLiftedSet();
+    }
+
+    private int calculateTotalRepetitionsIfNotProvided(Builder builder) {
+        if(builder.totalRepetitions==0){
+            return calculateTotalRepetitions();
+        }
+        else return builder.totalRepetitions;
+    }
+
+    private String generateRandomUUIDifNotProvided(Builder builder) {
+        if(Optional.ofNullable(builder.exerciseId).isPresent())
+            return builder.exerciseId;
+        else
+            return randomId();
+    }
+
+    private String randomId() {
+        return UUID.randomUUID().toString();
+    }
+
+    public String getExerciseId() {
+        return exerciseId;
     }
 
     public LiftType getLiftType() {
@@ -69,7 +139,8 @@ public class Exercise  {
     @Override
     public String toString() {
         return "Exercise{" +
-                "liftType=" + liftType +
+                "exerciseId='" + exerciseId + '\'' +
+                ", liftType=" + liftType +
                 ", sets=" + sets +
                 ", heaviestSet=" + heaviestSet +
                 ", totalRepetitions=" + totalRepetitions +

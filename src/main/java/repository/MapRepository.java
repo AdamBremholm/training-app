@@ -1,8 +1,11 @@
 package repository;
 
+import model.Exercise;
+import model.Set;
 import model.Workout;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MapRepository implements Repository {
 
@@ -55,7 +58,11 @@ public class MapRepository implements Repository {
 
     @Override
     public List<Workout> findByUserId(String userId) {
-        return null;
+        return workoutMap
+                .values()
+                .stream()
+                .filter((workout) -> userId.equals(workout.getUser().getUserId()))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -66,16 +73,28 @@ public class MapRepository implements Repository {
 
     @Override
     public double totalLiftedWeightByUser(String userId) {
-        return 0;
+        return findByUserId(userId)
+                .stream()
+                .mapToDouble(Workout::liftedPerWorkOut)
+                .sum();
     }
 
     @Override
     public double heaviestLiftByUser(String userId) {
-        return 0;
+        return findByUserId(userId)
+                .stream()
+                .map(Workout::getHeaviestExercise)
+                .map(Exercise::getHeaviestSet)
+                .mapToDouble(Set::getWeight)
+                .findAny()
+                .orElseThrow(NoSuchElementException::new);
     }
 
     @Override
     public int totalLiftsByUser(String userId) {
-        return 0;
+        return findByUserId(userId)
+                .stream()
+                .mapToInt(Workout::getTotalRepetitions)
+                .sum();
     }
 }

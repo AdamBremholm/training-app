@@ -3,6 +3,7 @@ package repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.Controller;
 import model.*;
+import org.hibernate.jdbc.Work;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -29,37 +31,38 @@ public class ListRepositoryTest {
     public void setUp()  {
         workouts = new ArrayList<>();
         Controller controller = Controller.getInstance(ListRepository.getInstance(workouts), new ObjectMapper());
-        Repository repository = controller.getRepository();
+        repository = controller.getRepository();
 
 
-        User mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
+         mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
                 .withUserId("mockUserId")
                 .withHeight(180)
                 .withWeight(80)
                 .build();
-        User mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
+         mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
                 .withUserId("mockUserId2")
                 .withHeight(165)
                 .withWeight(60)
                 .build();
-        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
+         mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
                 .withUserId("mockUserId3")
                 .withHeight(110)
                 .withWeight(50)
                 .build();
 
-        Set setA = new Set(5, 60);
-        Set setB = new Set(5, 55);
-        Set setC = new Set(5, 60);
-        Set setD = new Set(3, 40);
-        Set setE = new Set(5, 40);
-        Set setF = new Set(5, 45);
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setB = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setC = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setF = new Set.Builder().withRepetitions(5).withWeight(45).build();
 
-        Exercise squats = new Exercise(LiftType.SQUAT, Arrays.asList(setA, setA, setA));
-        Exercise benchPress = new Exercise(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB));
-        Exercise deadLift = new Exercise(LiftType.DEADLIFT, Collections.singletonList(setC));
-        Exercise powerClean = new Exercise(LiftType.POWERCLEAN, Arrays.asList(setE, setE, setE));
-        Exercise press = new Exercise(LiftType.PRESS, Arrays.asList(setD, setD, setF));
+
+        Exercise squats = new Exercise.Builder(LiftType.SQUAT, Arrays.asList(setA, setA, setA)).build();
+        Exercise benchPress = new Exercise.Builder(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB)).build();
+        Exercise deadLift = new Exercise.Builder(LiftType.DEADLIFT, Collections.singletonList(setC)).build();
+        Exercise powerClean = new Exercise.Builder(LiftType.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
+        Exercise press = new Exercise.Builder(LiftType.PRESS, Arrays.asList(setD, setD, setF)).build();
 
         List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
         List<Exercise> exercisesB = Arrays.asList(squats, powerClean, press);
@@ -106,7 +109,14 @@ public class ListRepositoryTest {
     }
 
     @Test
+    public void findByUserId() {
+
+       assertNotNull(repository.findByUserId(mockUser2.getUserId()));
+    }
+
+    @Test
     public void heaviestLiftByUser() {
+
         assertEquals(60, repository.heaviestLiftByUser(mockUser2.getUserId()), DELTA);
     }
 
@@ -122,6 +132,6 @@ public class ListRepositoryTest {
 
     @Test(expected = IllegalStateException.class)
     public void getHeaviestLiftedSetThrowsExceptionIfNotInitialized() {
-        Exercise exercise = new Exercise(LiftType.SQUAT, null);
+        Exercise exercise = new Exercise.Builder(LiftType.SQUAT, null).build();
     }
 }

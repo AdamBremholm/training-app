@@ -3,6 +3,7 @@ package controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
 
@@ -55,13 +56,13 @@ public class ControllerTest {
                 .withWeight(50)
                 .build();
 
-        Set setA = new Set(5, 60);
-        Set setB = new Set(5, 55);
-        Set setC = new Set(5, 60);
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("1s").build();
+        Set setB = new Set.Builder().withRepetitions(5).withWeight(55).withSetId("2s").build();
+        Set setC = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("3s").build();
 
-        Exercise squats = new Exercise(LiftType.SQUAT, Arrays.asList(setA, setA, setA));
-        Exercise benchPress = new Exercise(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB));
-        Exercise deadLift = new Exercise(LiftType.DEADLIFT, Collections.singletonList(setC));
+        Exercise squats = new Exercise.Builder(LiftType.SQUAT, Arrays.asList(setA, setA, setA)).withExerciseId("1e").build();
+        Exercise benchPress = new Exercise.Builder(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB)).withExerciseId("2e").build();
+        Exercise deadLift = new Exercise.Builder(LiftType.DEADLIFT, Collections.singletonList(setC)).withExerciseId("3e").build();
 
         List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
 
@@ -77,33 +78,9 @@ public class ControllerTest {
 
     }
 
-    public JsonNode workoutToJsonNode(Workout workout){
-       return mapper.convertValue(workout, JsonNode.class);
-            }
+    @Mock
+    Request mockRequest;
 
-     public JsonNode removeField(JsonNode jsonNode, String removeField){
-         for (JsonNode childNode : jsonNode) {
-             if (childNode instanceof ObjectNode) {
-                 if (childNode.has(removeField)) {
-                     ObjectNode object = (ObjectNode) childNode;
-                     object.remove(removeField);
-                 }
-             }
-         }
-         return jsonNode;
-     }
-
-    public JsonNode replaceField(JsonNode jsonNode, String originalField, String valueToReplace){
-        for (JsonNode childNode : jsonNode) {
-            if (childNode instanceof ObjectNode) {
-                if (childNode.has(originalField)) {
-                    ObjectNode object = (ObjectNode) childNode;
-                    object.put(originalField, valueToReplace);
-                }
-            }
-        }
-        return jsonNode;
-    }
 
 
 
@@ -137,8 +114,7 @@ public class ControllerTest {
         assertNotNull(result);
     }
 
-    @Mock
-    Request mockRequest;
+
 
     @Test
     public void saveConvertsJsonBodyToObjectAndInputsIntoRepository() {
@@ -155,7 +131,7 @@ public class ControllerTest {
     @Test
     public void saveCreatesWorkOutIdIfNoneProvided() {
 
-        removeField(mockWorkoutJsonNode, "workoutId");
+        removeFieldInObjectNodes(mockWorkoutJsonNode, "workoutId");
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         try {
@@ -171,7 +147,7 @@ public class ControllerTest {
     @Test
     public void saveCreatesUserIdIfNoneProvided() throws JsonProcessingException {
 
-        removeField(mockWorkoutJsonNode, "userId");
+        removeFieldInObjectNodes(mockWorkoutJsonNode, "userId");
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest);
@@ -219,6 +195,79 @@ public class ControllerTest {
     }
 
     @Test
+    public void removeFieldInWorkout(){
+        assertTrue(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
+        removeFieldInObjectNodes(mockWorkoutJsonNode, JsonFields.startTime.toString());
+        assertFalse(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
+    }
+
+    @Test
+    public void removeNestedFieldInWorkout(){
+        assertNotNull(mockWorkoutJsonNode.findValue(JsonFields.email.toString()));
+        removeFieldInObjectNodes(mockWorkoutJsonNode, JsonFields.email.toString());
+        assertNull((mockWorkoutJsonNode.findValue(JsonFields.email.toString())));
+    }
+
+    @Test
+    public void replaceNestedFieldInWorkOut1(){
+        assertTrue(mockWorkoutJsonNode.has(JsonFields.startTime.toString()));
+        replaceFieldInWorkout(mockWorkoutJsonNode, JsonFields.startTime.toString(), "newTime");
+        assertEquals("newTime", (mockWorkoutJsonNode.findValue(JsonFields.startTime.toString()).asText()));
+    }
+
+    @Test
+    public void replaceFieldInUser() {
+        assertTrue(mockWorkoutJsonNode.get(JsonFields.user.toString()).has(JsonFields.email.toString()));
+        replaceFieldInUser(mockWorkoutJsonNode, JsonFields.email.toString(), "hej@hotbrev");
+        assertEquals("hej@hotbrev", mockWorkoutJsonNode.get(JsonFields.user.toString()).get(JsonFields.email.toString()).asText());
+    }
+
+    @Test
+    public void replaceFieldInExercise() {
+        assertTrue(mockWorkoutJsonNode.get(JsonFields.exercises.toString()).get(0).has(JsonFields.liftType.toString()));
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", JsonFields.liftType.toString(), LiftType.BENCHPRESS.toString() );
+        assertEquals(LiftType.BENCHPRESS.toString(), mockWorkoutJsonNode.get(JsonFields.exercises.toString()).get(0).get(JsonFields.liftType.toString()).asText());
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void replaceSetValueThrowsExceptionWhenNegative() {
+        replaceFieldInSet(mockWorkoutJsonNode, "1e", "1s", JsonFields.repetitions.toString(), "-5");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise() {
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.heaviestExercise.toString(), "yeee" );
+        fail();
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise2() {
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.heaviestSet.toString(), "yeee" );
+        fail();
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesExercise3() {
+        replaceFieldInExercise(mockWorkoutJsonNode, "1e", ComputedJsonFields.totalRepetitions.toString(), "yeee" );
+        fail();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout() {
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.heaviestExercise.toString(), "yeee" );
+        fail();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout2() {
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.heaviestSet.toString(), "yeee" );
+        fail();
+    }
+    @Test(expected = IllegalArgumentException.class)
+    public void replaceValueThrowsExceptionWhenTryingToEditComputedPropertiesWorkout3() {
+        replaceFieldInWorkout(mockWorkoutJsonNode,  ComputedJsonFields.totalRepetitions.toString(), "yeee" );
+        fail();
+    }
+
+    @Test
     public void update() {
     }
 
@@ -244,5 +293,200 @@ public class ControllerTest {
 
     @Test
     public void totalLiftsByUser() {
+    }
+
+    private JsonNode workoutToJsonNode(Workout workout){ ;
+        return mapper.convertValue(workout, JsonNode.class);
+    }
+
+    private void removeFieldInObjectNodes(JsonNode jsonNode, String removeField){
+        if (jsonNode.has(removeField)) {
+            ObjectNode object = (ObjectNode) jsonNode;
+            object.remove(removeField);
+        }
+        for (JsonNode childNode : jsonNode) {
+            if (childNode instanceof ObjectNode) {
+                if (childNode.has(removeField)) {
+                    ObjectNode object = (ObjectNode) childNode;
+                    object.remove(removeField);
+                }
+            }
+        }
+
+    }
+
+    private void replaceFieldInWorkout(JsonNode jsonNode, String workoutField, String valueToReplace){
+        Optional.ofNullable(workoutField).orElseThrow(IllegalArgumentException::new);
+        Optional.ofNullable(valueToReplace).orElseThrow(IllegalArgumentException::new);
+
+        if (isComputed(workoutField)) {
+            throw new IllegalArgumentException("can only update values on fields which are not computed");
+        }
+
+        if (jsonNode.hasNonNull(workoutField)) {
+            ObjectNode object = (ObjectNode) jsonNode;
+            object.put(workoutField, valueToReplace);
+        } else
+            throw new NoSuchElementException(workoutField);
+    }
+
+    private void replaceFieldInUser(JsonNode jsonNode, String userField, String valueToReplace) {
+       JsonNode userNode = Optional.ofNullable(jsonNode).map(jsonNode1 -> jsonNode.get(JsonFields.user.toString())).orElseThrow(() -> new NoSuchElementException(JsonFields.user.toString()));
+       if (userNode instanceof ObjectNode && userNode.has(userField)){
+           ObjectNode object = (ObjectNode) userNode;
+           object.put(userField, valueToReplace);
+       } else
+           throw new NoSuchElementException(userField);
+    }
+
+
+
+    private void replaceFieldInExercise(JsonNode jsonNode, String exerciseId, String exerciseField, String valueToReplace)  {
+        Optional.ofNullable(exerciseField).orElseThrow(IllegalArgumentException::new);
+        Optional.ofNullable(exerciseId).orElseThrow(IllegalArgumentException::new);
+        Optional.ofNullable(valueToReplace).orElseThrow(IllegalArgumentException::new);
+
+        if (isComputed(exerciseField)) {
+            throw new IllegalArgumentException("can only update values on fields which are not computed");
+        }
+
+        JsonNode exercise = getExerciseByExerciseId(jsonNode, exerciseId);
+
+        if(exercise instanceof ObjectNode && ((ObjectNode)exercise).has(exerciseField)){
+                ((ObjectNode)exercise).put(exerciseField, valueToReplace);
+            }
+            else
+                throw new NoSuchElementException(exerciseField);
+
+    }
+
+    private boolean isComputed(String exerciseField) {
+        for (ComputedJsonFields field : ComputedJsonFields.values()) {
+            if (exerciseField.equals(field.toString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void replaceFieldInSet(JsonNode jsonNode, String exerciseId, String setId, String setField, String valueToReplace){
+
+        if(setField.equals(JsonFields.repetitions.toString())){
+            if(!isPositiveInteger(valueToReplace))
+                throw new NumberFormatException("only positive integers allowed");
+        }
+        else if (setField.equals(JsonFields.weight.toString())){
+            if(!isPositiveDouble(valueToReplace))
+                throw new NumberFormatException("only positive integers and decimals allowed");
+        }
+
+        JsonNode exercise = getExerciseByExerciseId(jsonNode, exerciseId);
+        ArrayNode setArray = (ArrayNode) Optional.ofNullable(jsonNode)
+                .map(jsonNode1 -> jsonNode.get(JsonFields.sets.toString()))
+                .filter(e -> e instanceof ArrayNode)
+                .orElseThrow(() -> new NoSuchElementException(JsonFields.sets.toString()));
+
+        JsonNode set;
+        for (JsonNode s : setArray) {
+          if(s instanceof ObjectNode && s.has(JsonFields.setId.toString()) && s.get(JsonFields.setId.toString()).equals(setId)) {
+          }
+        }
+
+        if(exercise instanceof ObjectNode && ((ObjectNode)exercise).has(JsonFields.sets.toString())){
+
+        }
+        else
+            throw new NoSuchElementException(setField);
+
+    }
+
+    @Test
+    public void isPositiveDouble() {
+        assertTrue(isPositiveDouble("0"));
+        assertTrue(isPositiveDouble("22"));
+        assertTrue(isPositiveDouble("5.05"));
+        assertFalse(isPositiveDouble("-200"));
+        assertTrue(isPositiveDouble("    22    "));
+        assertFalse(isPositiveDouble(null));
+        assertFalse(isPositiveDouble(""));
+        assertFalse(isPositiveDouble("abc"));
+    }
+
+    @Test
+    public void isPositiveInteger() {
+        assertTrue(isPositiveInteger("0"));
+        assertTrue(isPositiveInteger("22"));
+        assertFalse(isPositiveInteger("5.05"));
+        assertFalse(isPositiveInteger("-200"));
+        assertTrue(isPositiveInteger("    22    "));
+        assertFalse(isPositiveInteger(null));
+        assertFalse(isPositiveInteger(""));
+        assertFalse(isPositiveInteger("abc"));
+    }
+
+
+    public static boolean isPositiveDouble(String strNum) {
+        double d = 0;
+        try {
+             d = Double.parseDouble(strNum.trim());
+        } catch (NumberFormatException | NullPointerException nfe) {
+            return false;
+        }
+        if (d<0){
+           return false;
+        }
+        return true;
+    }
+
+    public static boolean isPositiveInteger(String strNum) {
+        int i = 0;
+        try {
+            i = Integer.parseInt(strNum.trim());
+        } catch (NumberFormatException | NullPointerException nfe) {
+            return false;
+        }
+        if (i<0 || strNum.contains(",") || strNum.contains(".")){
+           return false;
+        }
+        return true;
+
+    }
+
+    private JsonNode getExerciseByExerciseId(JsonNode jsonNode, String exerciseId) {
+        ArrayNode exerciseArray = (ArrayNode) Optional.ofNullable(jsonNode)
+                .map(jsonNode1 -> jsonNode.get("exercises"))
+                .filter(e -> e instanceof ArrayNode)
+                .orElseThrow(() -> new NoSuchElementException("exercises"));
+
+        for (JsonNode node : exerciseArray) {
+            if(node instanceof ObjectNode && ((ObjectNode)node).get(JsonFields.exerciseId.toString()).asText().equals(exerciseId)) {
+                return node;
+            }
+        }
+        throw new NoSuchElementException(exerciseId);
+    }
+
+
+    private JsonNode replaceFieldInJsonNode(JsonNode jsonNode, String originalField, String valueToReplace) {
+        if (jsonNode.has(originalField)) {
+            ObjectNode object = (ObjectNode) jsonNode;
+            object.put(originalField, valueToReplace);
+            return null;
+        }
+        return jsonNode;
+    }
+
+    private void replaceFieldInJsonNodesChildren(JsonNode jsonNode, String originalField, String valueToReplace) {
+
+        for (JsonNode childNode : jsonNode) {
+            if (childNode instanceof ObjectNode) {
+                if (childNode.has(originalField)) {
+                    ObjectNode object = (ObjectNode) childNode;
+                    object.put(originalField, valueToReplace);
+                } else {
+                    replaceFieldInJsonNodesChildren(childNode, originalField, valueToReplace);
+                }
+            }
+        }
     }
 }

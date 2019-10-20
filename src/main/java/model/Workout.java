@@ -163,5 +163,16 @@ public class Workout {
             throw new IllegalStateException("exercises not initialized");
     }
 
-
+    @Override
+    public String toString() {
+        return "Workout{" +
+                "workoutId='" + workoutId + '\'' +
+                ", user=" + user +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                ", exercises=" + exercises +
+                ", heaviestExercise=" + heaviestExercise +
+                ", totalRepetitions=" + totalRepetitions +
+                '}';
+    }
 }

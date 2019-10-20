@@ -18,7 +18,10 @@ public class ListRepository implements Repository {
     }
 
     public static ListRepository getInstance(List<Workout> workouts){
+       if (Optional.ofNullable(workouts).isPresent())
         return new ListRepository(workouts);
+       else
+           throw new IllegalStateException("workouts not initialized");
     }
 
     public List<Workout> getWorkouts() {
@@ -67,10 +70,12 @@ public class ListRepository implements Repository {
 
     @Override
     public double totalLiftedWeightByUser(String userId) {
-        return findByUserId(userId)
+       return findByUserId(userId)
                 .stream()
                 .mapToDouble(Workout::liftedPerWorkOut)
                 .sum();
+
+
     }
 
     @Override
