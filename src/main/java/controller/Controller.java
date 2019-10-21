@@ -4,6 +4,7 @@ package controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.ComputedFields;
 import model.Fields;
 import model.Workout;
@@ -13,17 +14,20 @@ import spark.Request;
 import spark.Response;
 import view.JsonView;
 
+import javax.swing.*;
+import java.lang.reflect.Field;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
+import static java.net.HttpURLConnection.*;
 
 
 public class Controller implements Initialisable {
 
-    private static final int HTTP_NOT_FOUND = 404;
+
     private final Repository repository;
     private final ObjectMapper mapper;
     private static final String IN_PARAM_NULL = "one of the methods in parameters is null";
@@ -46,6 +50,16 @@ public class Controller implements Initialisable {
     public ObjectMapper getMapper() {
         return mapper;
     }
+
+    public static List<String> getFieldNames(Object object) {
+        Field[] fields = object.getClass().getDeclaredFields();
+
+        List<String> fieldNames = new ArrayList<>();
+        for (Field field : fields)
+            fieldNames.add(field.getName());
+        return fieldNames;
+    }
+
 
     public Workout mapBodyToWorkout(Request request) throws JsonProcessingException {
         return mapper.readValue(request.body(), Workout.class);
@@ -74,6 +88,8 @@ public class Controller implements Initialisable {
     }
 
     private void validateRequestData(JsonNode requestData) {
+
+
         final String COMPUTED_VALUE = " is a computed value, it cant be set";
         JsonNode jsonNode = null;
         for (ComputedFields cf : ComputedFields.values()) {
@@ -115,7 +131,7 @@ public class Controller implements Initialisable {
         Workout workout = null;
         try {
             workout = mapBodyToWorkout(request);
-            response.status(201);
+            response.status(HTTP_CREATED);
             response.type("application/json");
             return JsonView.workoutAsJson(repository.save(workout), mapper);
         } catch (JsonProcessingException e) {
@@ -128,9 +144,9 @@ public class Controller implements Initialisable {
     public String get(Request request, Response response)  {
 
         try {
-            response.status(200);
-            response.type("application/json");
             String workoutId = Optional.ofNullable(request.params("workoutId")).orElseThrow(IllegalArgumentException::new);
+            response.status(HTTP_OK);
+            response.type("application/json");
             return JsonView.workoutAsJson(repository.get(workoutId), mapper);
         } catch (JsonProcessingException jpe) {
             response.status(HTTP_BAD_REQUEST);
@@ -142,7 +158,7 @@ public class Controller implements Initialisable {
 
     }
 
-    public String update(Request request, Response response) throws JsonProcessingException {
+    public String update(Request request, Response response)  {
         try {
             String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             Workout oldWorkout = repository.get(workoutId);
@@ -154,7 +170,7 @@ public class Controller implements Initialisable {
             Workout updatedWorkout = mapTemplateToWorkout(updatedTemplateWorkout);
             repository.delete(workoutId);
             Workout saveResult = repository.save(updatedWorkout);
-            response.status(200);
+            response.status(HTTP_OK);
             response.type("application/json");
             return JsonView.workoutAsJson(saveResult, mapper);
         } catch (JsonProcessingException jpe) {
