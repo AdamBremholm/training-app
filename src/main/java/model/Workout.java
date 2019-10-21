@@ -73,14 +73,20 @@ public class Workout {
     }
 
     public Workout(Builder builder) {
+        ifEndTimeBeforeStartTimeThrowException(builder.startTime, builder.endTime);
         this.user = builder.user;
         this.startTime = builder.startTime;
         this.endTime = builder.endTime;
         this.exercises = builder.exercises;
         this.workoutId = generateRandomUUIDifNotProvided(builder);
-        this.heaviestExercise = calculateHeaviestExercisePerWorkoutIfNotProvided(builder);
-        this.totalRepetitions = calculateTotalRepetitionsIfNotProvided(builder);
+        this.heaviestExercise = calculateHeaviestExercisePerWorkout();
+        this.totalRepetitions = calculateTotalRepetitionsPerWorkout();
 
+    }
+
+    private void ifEndTimeBeforeStartTimeThrowException(Instant startTime, Instant endTime) {
+        if (endTime.isBefore(startTime))
+            throw new IllegalArgumentException("endTime cannot be before startTime");
     }
 
     private String generateRandomUUIDifNotProvided(Builder builder) {
@@ -90,19 +96,8 @@ public class Workout {
             return randomId();
     }
 
-    public Exercise calculateHeaviestExercisePerWorkoutIfNotProvided(Builder builder){
-        if (Optional.ofNullable(builder.heaviestExercise).isPresent())
-            return builder.heaviestExercise;
-        else
-            return calculateHeaviestExercisePerWorkout();
-    }
 
-    public int calculateTotalRepetitionsIfNotProvided(Builder builder){
-        if (builder.totalRepetitions!=0)
-            return  builder.totalRepetitions;
-        else
-            return calculateTotalRepetitionsPerWorkout();
-    }
+
 
     public String getWorkoutId() {
         return workoutId;

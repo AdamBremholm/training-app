@@ -60,25 +60,11 @@ public class Exercise  {
         this.exerciseId = generateRandomUUIDifNotProvided(builder);
         this.liftType = builder.liftType;
         this.sets = builder.sets;
-        this.totalRepetitions = calculateTotalRepetitionsIfNotProvided(builder);
-        this.heaviestSet = calculateHeaviestLiftedSetIfNotProvided(builder);
+        this.totalRepetitions = calculateTotalRepetitions();
+        this.heaviestSet = calculateHeaviestLiftedSet();
     }
 
 
-
-    private Set calculateHeaviestLiftedSetIfNotProvided(Builder builder) {
-        if(Optional.ofNullable(builder.heaviestSet).isPresent())
-            return builder.heaviestSet;
-        else
-            return calculateHeaviestLiftedSet();
-    }
-
-    private int calculateTotalRepetitionsIfNotProvided(Builder builder) {
-        if(builder.totalRepetitions==0){
-            return calculateTotalRepetitions();
-        }
-        else return builder.totalRepetitions;
-    }
 
     private String generateRandomUUIDifNotProvided(Builder builder) {
         if(Optional.ofNullable(builder.exerciseId).isPresent())

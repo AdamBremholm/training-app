@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 import repository.MapRepository;
 import spark.Request;
 import spark.Response;
+import view.JsonView;
 
 import java.time.Instant;
 import java.util.*;
@@ -28,6 +29,7 @@ public class ControllerTest {
     private MapRepository repository;
     private Controller controller;
     private ObjectMapper mapper;
+    private Workout mockWorkout3;
     private User mockUser1;
     private User mockUser2;
     private User mockUser3;
@@ -68,15 +70,17 @@ public class ControllerTest {
 
         List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
 
-        Workout mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
+        mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
                 .withWorkoutId("7b244503-82fd-4cf3-af08-2ffefe5a9320")
-                .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
-                .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
+                .withStartTime(Instant.parse("2019-10-04T10:15:30Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
                 .build();
 
         mockWorkoutJsonNode = workoutToJsonNode(mockWorkout3);
 
         mockWorkOutId = mockWorkout3.getWorkoutId();
+
+
 
     }
 
@@ -274,7 +278,119 @@ public class ControllerTest {
     }
 
     @Test
-    public void update() {
+    public void updateWorkoutId() throws JsonProcessingException {
+        repository.save(mockWorkout3);
+        ObjectNode jsonNode = mapper.createObjectNode();
+        jsonNode.put(Fields.workoutId.toString(), "1234");
+        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        assertEquals(jsonNodeRes.get(Fields.workoutId.toString()).asText(), "1234");
+    }
+
+    @Test
+    public void updateStartTime() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode jsonNode = mapper.createObjectNode();
+        jsonNode.put(Fields.startTime.toString(), "2019-10-03 10:15:30");
+        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(Fields.startTime.toString()).asText());
+    }
+
+    @Test
+    public void updateEndTime() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode jsonNode = mapper.createObjectNode();
+        jsonNode.put(Fields.endTime.toString(), "2019-10-13 10:15:30");
+        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Fields.endTime.toString()).asText());
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void updateEndTimeCantBeBeforeStartTime() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode jsonNode = mapper.createObjectNode();
+        jsonNode.put(Fields.endTime.toString(), "2017-10-13 10:15:30");
+        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        fail();
+    }
+
+    @Test
+    public void updateUserObjectInWorkout() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode userJsonNode = mapper.createObjectNode();
+        userJsonNode.put(Fields.email.toString(), "gurkan@gmail.com");
+        ObjectNode workoutJsonNode = mapper.createObjectNode();
+        workoutJsonNode.replace(Fields.user.toString(), userJsonNode);
+        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Fields.user.toString()).get(Fields.email.toString()).asText());
+    }
+
+    @Test
+    public void updateMultipleValuesInNestedObjectInWorkout() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode userJsonNode = mapper.createObjectNode();
+        userJsonNode.put(Fields.email.toString(), "gurkan@gmail.com");
+        userJsonNode.put(Fields.weight.toString(), "60.53");
+        ObjectNode workoutJsonNode = mapper.createObjectNode();
+        workoutJsonNode.replace(Fields.user.toString(), userJsonNode);
+        workoutJsonNode.put(Fields.workoutId.toString(), "123");
+        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        JsonNode jsonNodeRes = mapStringToJsonNode(result);
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Fields.user.toString()).get(Fields.email.toString()).asText());
+        assertEquals("60.53", jsonNodeRes.get(Fields.user.toString()).get(Fields.weight.toString()).asText());
+        assertEquals("123", jsonNodeRes.get(Fields.workoutId.toString()).asText());
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void updateComputedValuesGenerateIllegalArgumentException() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ObjectNode exerciseNode = mapper.createObjectNode();
+        ObjectNode workoutJsonNode = mapper.createObjectNode();
+        workoutJsonNode.replace(ComputedFields.heaviestExercise.toString(), exerciseNode );
+        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        fail();
+
+    }
+
+    @Test (expected = IllegalArgumentException.class)
+    public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() throws JsonProcessingException {
+
+        repository.save(mockWorkout3);
+        ArrayNode exerciseArray = mapper.createArrayNode();
+        ObjectNode exerciseNode = mapper.createObjectNode();
+        ObjectNode setNote = mapper.createObjectNode();
+        exerciseNode.replace(ComputedFields.heaviestSet.toString(), setNote);
+        exerciseArray.add(exerciseNode);
+        ObjectNode workoutJsonNode = mapper.createObjectNode();
+        workoutJsonNode.replace(Fields.exercises.toString(), exerciseArray );
+        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        String result = controller.update(mockRequest, mockResponse);
+        fail();
     }
 
     @Test
@@ -454,6 +570,10 @@ public class ControllerTest {
         }
         return true;
 
+    }
+
+    private JsonNode mapStringToJsonNode(String jsonString) throws JsonProcessingException {
+        return mapper.readTree(jsonString);
     }
 
     private JsonNode getExerciseByExerciseId(JsonNode jsonNode, String exerciseId) {

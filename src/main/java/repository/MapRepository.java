@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import model.Exercise;
 import model.Set;
 import model.Workout;
+import model.template.TemplateWorkout;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,9 +49,10 @@ public class MapRepository implements Repository {
     }
 
     @Override
-    public Workout update(Workout workout)  {
-     return null;
+    public Workout update(TemplateWorkout templateWorkout) {
+        return null;
     }
+
 
     @Override
     public void delete(String workoutId) {

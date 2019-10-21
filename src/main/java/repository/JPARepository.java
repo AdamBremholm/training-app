@@ -2,6 +2,7 @@ package repository;
 
 
 import model.Workout;
+import model.template.TemplateWorkout;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class JPARepository implements Repository {
     }
 
     @Override
-    public Workout update(Workout workout) {
+    public Workout update(TemplateWorkout templateWorkout) {
         return null;
     }
 

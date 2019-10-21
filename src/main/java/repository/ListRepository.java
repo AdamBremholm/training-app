@@ -3,6 +3,8 @@ package repository;
 import model.Exercise;
 import model.Set;
 import model.Workout;
+import model.template.TemplateWorkout;
+
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -47,7 +49,7 @@ public class ListRepository implements Repository {
     }
 
     @Override
-    public Workout update(Workout workout) {
+    public Workout update(TemplateWorkout templateWorkout) {
         return null;
     }
 
