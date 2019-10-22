@@ -4,8 +4,7 @@ package controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.sun.xml.internal.ws.encoding.ContentType;
+
 import model.ComputedFields;
 import model.Fields;
 import model.Workout;
@@ -15,7 +14,6 @@ import spark.Request;
 import spark.Response;
 import view.JsonView;
 
-import javax.swing.*;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -48,19 +46,6 @@ public class Controller implements Initialisable {
     public Repository getRepository() { return repository;
     }
 
-    ObjectMapper getMapper() {
-        return mapper;
-    }
-
-    public static List<String> getFieldNames(Object object) {
-        Field[] fields = object.getClass().getDeclaredFields();
-
-        List<String> fieldNames = new ArrayList<>();
-        for (Field field : fields)
-            fieldNames.add(field.getName());
-        return fieldNames;
-    }
-
 
     private Workout mapBodyToWorkout(Request request) throws JsonProcessingException {
         return mapper.readValue(request.body(), Workout.class);
@@ -74,7 +59,7 @@ public class Controller implements Initialisable {
         return mapper.readValue(workoutString, TemplateWorkout.class);
     }
 
-    private TemplateWorkout updateTemplateWorkout(TemplateWorkout templateWorkout, TemplateWorkout requestData) {
+    private TemplateWorkout updateTemplateWorkout(TemplateWorkout templateWorkout, TemplateWorkout requestData) throws IllegalArgumentException {
         Optional.ofNullable(requestData.getWorkoutId()).ifPresent(templateWorkout::setWorkoutId);
         Optional.ofNullable(requestData.getEndTime()).ifPresent(templateWorkout::setEndTime);
         Optional.ofNullable(requestData.getStartTime()).ifPresent(templateWorkout::setStartTime);
@@ -84,7 +69,7 @@ public class Controller implements Initialisable {
         return templateWorkout;
     }
 
-    private void validateTemplateWorkout(TemplateWorkout templateWorkout){
+    private void validateTemplateWorkout(TemplateWorkout templateWorkout) throws IllegalArgumentException{
         ifEndTimeBeforeStartTimeThrowException(templateWorkout.getStartTime(), templateWorkout.getEndTime());
     }
 
@@ -144,7 +129,7 @@ public class Controller implements Initialisable {
     public String get(Request request, Response response)  {
 
         try {
-            String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
+            String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(() -> new IllegalArgumentException("need workoutId in url"));
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(repository.get(workoutId), mapper);
@@ -154,6 +139,9 @@ public class Controller implements Initialisable {
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
+        } catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
 
     }
@@ -168,11 +156,10 @@ public class Controller implements Initialisable {
             TemplateWorkout requestData = mapRequestBodyToTemplateWorkout(request);
             TemplateWorkout updatedTemplateWorkout = updateTemplateWorkout(templateWorkout, requestData);
             Workout updatedWorkout = mapTemplateToWorkout(updatedTemplateWorkout);
-            repository.delete(workoutId);
-            Workout saveResult = repository.save(updatedWorkout);
+            Workout result = repository.update(workoutId, updatedWorkout);
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
-            return JsonView.workoutAsJson(saveResult, mapper);
+            return JsonView.workoutAsJson(result, mapper);
         } catch (JsonProcessingException jpe) {
             response.status(HTTP_BAD_REQUEST);
             return jpe.toString();
@@ -181,17 +168,12 @@ public class Controller implements Initialisable {
             return nse.toString();
         }
 
-
-
-
     }
-
-
 
 
     public String delete(Request request, Response response)  {
         try {
-            response.status(204);
+            response.status(HTTP_NO_CONTENT);
             response.type(APPLICATION_JSON);
             String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             repository.delete(workoutId);
@@ -199,6 +181,9 @@ public class Controller implements Initialisable {
         }  catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
+        }  catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
 
     }

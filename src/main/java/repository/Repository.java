@@ -10,7 +10,7 @@ public interface Repository {
     List<Workout> list();
     Workout save(Workout workout);
     Workout get(String workoutId);
-    Workout update(TemplateWorkout templateWorkout);
+    Workout update(String workoutId, Workout workout);
     void delete(String workoutId);
     List<Workout> findByUserId(String userId);
     int size();

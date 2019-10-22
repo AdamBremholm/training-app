@@ -49,8 +49,9 @@ public class MapRepository implements Repository {
     }
 
     @Override
-    public Workout update(TemplateWorkout templateWorkout) {
-        return null;
+    public Workout update(String workoutId, Workout workout) {
+       delete(workoutId);
+      return save(workout);
     }
 
 

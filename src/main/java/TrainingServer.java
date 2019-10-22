@@ -1,20 +1,28 @@
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.Controller;
-import controller.ControllerFactory;
 import controller.Initialisable;
+import repository.MapRepository;
+
+import java.util.HashMap;
+
 import static spark.Spark.*;
 
 
 
-public class Server {
+public class TrainingServer {
 
 
     public static void main(String[] args) {
 
         ObjectMapper mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
-        Controller controller = ControllerFactory.getMapRepositoryController();
+        Controller controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), mapper);
         Initialisable.populate(controller);
+
+        get("/heartbeat", ((request, response) -> {
+            response.status(200);
+            return "";
+        }));
 
         get("/api/workouts", controller::list);
         post("/api/workouts", controller::save);
