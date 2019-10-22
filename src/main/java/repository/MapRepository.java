@@ -1,6 +1,6 @@
 package repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import model.Exercise;
 import model.Set;
 import model.Workout;
@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class MapRepository implements Repository {
 
 
-    public final Map<String, Workout> workoutMap;
+    private final Map<String, Workout> workoutMap;
 
     private MapRepository(Map<String, Workout> workoutMap) {
         this.workoutMap = workoutMap;
@@ -28,15 +28,15 @@ public class MapRepository implements Repository {
 
     @Override
     public List<Workout> list() {
-        return new ArrayList<Workout>(workoutMap.values());
+        return new ArrayList<>(workoutMap.values());
     }
 
     @Override
     public Workout save(Workout workout) {
         Workout nonNullWorkOut = Optional.ofNullable(workout).orElseThrow(IllegalArgumentException::new);
-        Optional.ofNullable(workoutMap).ifPresent(workoutMap -> {
-            if(!workoutMap.containsKey(workout.getWorkoutId()))
-            workoutMap.put(nonNullWorkOut.getWorkoutId(), nonNullWorkOut);
+        Optional.ofNullable(workoutMap).ifPresent(presentWorkOutMap -> {
+            if(!presentWorkOutMap.containsKey(workout.getWorkoutId()))
+                presentWorkOutMap.put(nonNullWorkOut.getWorkoutId(), nonNullWorkOut);
             else
                 throw new IllegalArgumentException("The key (workoutId) already exists in the database.");
         });
@@ -45,7 +45,7 @@ public class MapRepository implements Repository {
 
     @Override
     public Workout get(String workoutId) {
-       return Optional.ofNullable(workoutMap).map(workoutMap -> workoutMap.get(workoutId)).orElseThrow(NoSuchElementException::new);
+       return Optional.ofNullable(workoutMap).map(presentWorkOutMap -> presentWorkOutMap.get(workoutId)).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class MapRepository implements Repository {
 
     @Override
     public void delete(String workoutId) {
-        Optional.of(workoutMap.remove(workoutId)).orElseThrow(NoSuchElementException::new);
+        Optional.ofNullable(workoutMap.remove(workoutId)).orElseThrow(NoSuchElementException::new);
     }
 
     @Override
