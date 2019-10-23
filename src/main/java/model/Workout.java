@@ -161,6 +161,7 @@ public class Workout implements Reflectable {
             throw new IllegalStateException("exercises not initialized");
     }
 
+
     @Override
     public String toString() {
         return "Workout{" +

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.ComputedFields;
+import model.Exercise;
 import model.Workout;
 import model.template.TemplateExercise;
 import model.template.TemplateUser;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.*;
 
@@ -79,7 +81,18 @@ public class Controller implements Initialisable {
 
 
 
+            }
+
+
+
+    private TemplateExercise findTemplateExerciseByExerciseId(String exerciseId, Map<String, TemplateExercise> templateExercises){
+    if(Optional.ofNullable(templateExercises).isPresent() && templateExercises.containsKey(exerciseId))
+        return templateExercises.get(exerciseId);
+    else
+        throw new NoSuchElementException();
     }
+
+
 
     private void updateTemplateUser(TemplateUser templateUser, TemplateUser requestUser) {
 

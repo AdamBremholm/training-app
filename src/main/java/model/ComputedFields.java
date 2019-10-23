@@ -4,5 +4,8 @@ public enum ComputedFields {
 
     heaviestSet,
     totalRepetitions,
-    heaviestExercise
+    heaviestExercise,
+    workoutId,
+    exerciseId,
+    userId;
 }
