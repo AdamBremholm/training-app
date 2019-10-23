@@ -1,16 +1,18 @@
 package model.template;
 
-import model.Exercise;
+
 import model.Set;
 
-import java.util.List;
+
+
+import java.util.Map;
 
 public class TemplateExercise {
 
     private String exerciseId;
     private Type type;
-    private  List<TemplateSet> sets;
-    private  Set heaviestSet;
+    private Map<String, TemplateSet> sets;
+    private TemplateSet heaviestSet;
     private  int totalRepetitions;
 
     public TemplateExercise() {
@@ -32,19 +34,19 @@ public class TemplateExercise {
         this.type = type;
     }
 
-    public List<TemplateSet> getSets() {
+    public Map<String, TemplateSet> getSets() {
         return sets;
     }
 
-    public void setSets(List<TemplateSet> sets) {
+    public void setSets(Map<String, TemplateSet> sets) {
         this.sets = sets;
     }
 
-    public Set getHeaviestSet() {
+    public TemplateSet getHeaviestSet() {
         return heaviestSet;
     }
 
-    public void setHeaviestSet(Set heaviestSet) {
+    public void setHeaviestSet(TemplateSet heaviestSet) {
         this.heaviestSet = heaviestSet;
     }
 

@@ -5,10 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import model.ComputedFields;
 import model.Exercise;
+import model.ImmutableFields;
 import model.Workout;
 import model.template.TemplateExercise;
+import model.template.TemplateSet;
 import model.template.TemplateUser;
 import model.template.TemplateWorkout;
 import repository.Repository;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static java.net.HttpURLConnection.*;
 
@@ -67,9 +67,7 @@ public class Controller implements Initialisable {
         optionalRequestWorkout.map(TemplateWorkout::getWorkoutId).ifPresent(templateWorkout::setWorkoutId);
         optionalRequestWorkout.map(TemplateWorkout::getEndTime).ifPresent(templateWorkout::setEndTime);
         optionalRequestWorkout.map(TemplateWorkout::getStartTime).ifPresent(templateWorkout::setStartTime);
-     //   optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent(templateWorkout::setExercises);
-
-        optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent((exerciseList)-> updateTemplateExercises(templateWorkout.getExercises(), exerciseList));
+        optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent((requestExercises)-> updateTemplateExercises(templateWorkout.getExercises(), requestExercises));
 
 
         updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
@@ -80,16 +78,50 @@ public class Controller implements Initialisable {
     private void updateTemplateExercises(Map<String, TemplateExercise> templateExercises, Map<String, TemplateExercise> requestExercises) {
 
 
+            requestExercises.forEach((exerciseId, requestExercise) -> {
 
+               findTemplateExerciseByExerciseId(exerciseId, templateExercises).ifPresent(targetExercise -> {
+
+                    Optional.ofNullable(requestExercise).map(TemplateExercise::getType)
+                            .ifPresent(targetExercise::setType);
+
+                   Optional.ofNullable(requestExercise).map(TemplateExercise::getSets)
+                           .ifPresent(requestSets -> {
+
+                               requestSets.forEach((setId, requestTemplateSet) -> {
+
+                                   findTemplateSetBySetId(setId, targetExercise.getSets())
+                                           .ifPresent(targetSet -> {
+
+                                               Optional.of(requestTemplateSet.getRepetitions())
+                                                       .filter(value -> value > 0).ifPresent(targetSet::setRepetitions);
+
+                                               Optional.of(requestTemplateSet.getWeight())
+                                                       .filter(value -> value > 0).ifPresent(targetSet::setWeight);
+
+                                           });
+                               });
+
+                           });
+                });
+
+            });
             }
 
 
 
-    private TemplateExercise findTemplateExerciseByExerciseId(String exerciseId, Map<String, TemplateExercise> templateExercises){
+    private Optional<TemplateExercise> findTemplateExerciseByExerciseId(String exerciseId, Map<String, TemplateExercise> templateExercises){
     if(Optional.ofNullable(templateExercises).isPresent() && templateExercises.containsKey(exerciseId))
-        return templateExercises.get(exerciseId);
-    else
-        throw new NoSuchElementException();
+        return Optional.ofNullable(templateExercises.get(exerciseId));
+
+    return Optional.empty();
+    }
+
+    private Optional<TemplateSet> findTemplateSetBySetId(String setId, Map<String, TemplateSet> templateSets){
+        if(Optional.ofNullable(templateSets).isPresent() && templateSets.containsKey(setId))
+            return Optional.ofNullable(templateSets.get(setId));
+
+        return Optional.empty();
     }
 
 
@@ -111,14 +143,14 @@ public class Controller implements Initialisable {
         ifEndTimeBeforeStartTimeThrowException(templateWorkout.getStartTime(), templateWorkout.getEndTime());
     }
 
-    private void validateRequestData(JsonNode requestData) {
+    private void validateRequestData(JsonNode requestData) throws IllegalArgumentException {
 
-        final String COMPUTED_VALUE = " is a computed value, it cant be set";
+        final String IMMUTABLE_FIELD = " is an immutable field, remove it from request ";
         JsonNode jsonNode;
-        for (ComputedFields cf : ComputedFields.values()) {
+        for (ImmutableFields cf : ImmutableFields.values()) {
             jsonNode = requestData.findValue(cf.toString());
             Optional.ofNullable(jsonNode).ifPresent(s -> {
-                throw new IllegalArgumentException(cf.toString() + COMPUTED_VALUE);
+                throw new IllegalArgumentException(cf.toString() + IMMUTABLE_FIELD);
             });
         }
     }
@@ -205,6 +237,9 @@ public class Controller implements Initialisable {
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
+        } catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
 
 

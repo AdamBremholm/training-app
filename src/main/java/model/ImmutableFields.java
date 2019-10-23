@@ -1,11 +1,9 @@
 package model;
 
-public enum ComputedFields {
+public enum ImmutableFields {
 
     heaviestSet,
     totalRepetitions,
     heaviestExercise,
-    workoutId,
-    exerciseId,
-    userId;
+    workoutId;
 }

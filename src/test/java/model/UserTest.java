@@ -123,6 +123,6 @@ public class UserTest {
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
 
-        assertTrue(mockUser1.fieldsEnumContainsNonComputedFieldsOfParent(mockUser1, EnumSet.allOf(ComputedFields.class)));
+        assertTrue(mockUser1.fieldsEnumContainsNonComputedFieldsOfParent(mockUser1, EnumSet.allOf(ImmutableFields.class)));
     }
 }

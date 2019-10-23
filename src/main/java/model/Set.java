@@ -124,7 +124,7 @@ public class Set implements Comparable<Set>, Reflectable {
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =
-                Stream.of(ComputedFields.values())
+                Stream.of(ImmutableFields.values())
                         .map(Enum::name)
                         .collect(Collectors.toList());
 

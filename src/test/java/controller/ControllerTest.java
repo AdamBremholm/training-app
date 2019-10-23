@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
 
 import model.Set;
-import org.hibernate.jdbc.Work;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -63,13 +62,48 @@ public class ControllerTest {
                 .withWeight(50)
                 .build();
 
-        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("1s").build();
-        Set setB = new Set.Builder().withRepetitions(5).withWeight(55).withSetId("2s").build();
-        Set setC = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("3s").build();
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setA2 = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setA3 = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setB = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setB2 = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setB3 = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setC = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setE2 = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setE3 = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setF =new Set.Builder().withRepetitions(5).withWeight(45).build();
 
-        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, Arrays.asList(setA, setA, setA)).withExerciseId("1e").build();
-        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, Arrays.asList(setB, setB, setB)).withExerciseId("2e").build();
-        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, Collections.singletonList(setC)).withExerciseId("3e").build();
+
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        sets1.put(setA2.getSetId(), setA2);
+        sets1.put(setA3.getSetId(), setA3);
+
+        Map<String, Set> sets2 = new NoOverWriteMap<>();
+        sets2.put(setB.getSetId(),setB);
+        sets2.put(setB2.getSetId(), setB2);
+        sets2.put(setB3.getSetId(), setB3);
+
+        Map<String, Set> sets3 = new NoOverWriteMap<>();
+        sets3.put(setC.getSetId(),setC);
+
+        Map<String, Set> sets4 = new NoOverWriteMap<>();
+        sets4.put(setE.getSetId(),setE);
+        sets4.put(setE2.getSetId(), setE2);
+        sets4.put(setE3.getSetId(), setE3);
+
+        Map<String, Set> sets5 = new NoOverWriteMap<>();
+        sets5.put(setD.getSetId(),setD);
+        sets5.put(setD2.getSetId(), setD2);
+        sets5.put(setF.getSetId(), setF);
+
+
+        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, sets1).withExerciseId("1e").build();
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets2).withExerciseId("2e").build();
+        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, sets3).withExerciseId("3e").build();
 
         Map<String, Exercise> exercisesA = new HashMap<>();
         exercisesA.put(squats.getExerciseId(), squats);
@@ -230,15 +264,17 @@ public class ControllerTest {
 
 
     @Test
-    public void updateWorkoutId() throws JsonProcessingException {
+    public void updateWorkoutIdThrowsIllegalArgumentException() throws JsonProcessingException {
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put(Workout.Fields.workoutId.name(), "1234");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String result = controller.update(mockRequest, mockResponse);
-        JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals(jsonNodeRes.get(Workout.Fields.workoutId.name()).asText(), "1234");
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+
     }
 
     @Test
@@ -267,7 +303,7 @@ public class ControllerTest {
         assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Workout.Fields.endTime.name()).asText());
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void updateEndTimeCantBeBeforeStartTime() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
@@ -275,9 +311,11 @@ public class ControllerTest {
         jsonNode.put(Workout.Fields.endTime.name(), "2017-10-13 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String result = controller.update(mockRequest, mockResponse);
-        JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        fail();
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -330,45 +368,50 @@ public class ControllerTest {
         userJsonNode.put(User.Fields.weight.name(), "60.53");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
-        workoutJsonNode.put(Workout.Fields.workoutId.name(), "123");
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
         assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
         assertEquals("60.53", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.weight.name()).asText());
-        assertEquals("123", jsonNodeRes.get(Workout.Fields.workoutId.name()).asText());
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void updateComputedValuesGenerateIllegalArgumentException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(ComputedFields.heaviestExercise.name(), exerciseNode );
+        workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode );
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String result = controller.update(mockRequest, mockResponse);
-        fail();
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+
 
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ComputedFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(Workout.Fields.exercises.name(), exerciseArray );
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String result = controller.update(mockRequest, mockResponse);
-        fail();
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+
+
     }
 
 

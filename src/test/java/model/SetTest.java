@@ -3,13 +3,7 @@ package model;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -102,6 +96,6 @@ public class SetTest {
 
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
-        assertTrue(set.fieldsEnumContainsNonComputedFieldsOfParent(set, EnumSet.allOf(ComputedFields.class)));
+        assertTrue(set.fieldsEnumContainsNonComputedFieldsOfParent(set, EnumSet.allOf(ImmutableFields.class)));
     }
 }

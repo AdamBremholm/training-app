@@ -15,7 +15,7 @@ public class Exercise implements Reflectable {
 
     private String exerciseId;
     private final Type type;
-    private final List<Set> sets;
+    private final Map<String, Set> sets;
     private final Set heaviestSet;
     private final int totalRepetitions;
 
@@ -25,14 +25,14 @@ public class Exercise implements Reflectable {
     public static class Builder {
 
         private final Type type;
-        private final List<Set> sets;
+        private final Map<String, Set> sets;
 
         private String exerciseId = null;
         private int totalRepetitions = 0;
         private Set heaviestSet = null;
 
         @JsonCreator
-        public Builder(@JsonProperty("type") Type type, @JsonProperty("sets") List<Set> sets) {
+        public Builder(@JsonProperty("type") Type type, @JsonProperty("sets") Map<String, Set> sets) {
             this.type = type;
             this.sets = sets;
 
@@ -89,21 +89,21 @@ public class Exercise implements Reflectable {
         return type;
     }
 
-    public List<Set> getSets() {
+    public Map<String, Set> getSets() {
         return sets;
     }
 
     public double liftedPerExercise() {
         double totalLiftedWeight = 0;
         if(Optional.ofNullable(sets).isPresent()){
-            totalLiftedWeight = sets.stream().map(Set::totalWeightPerSet).mapToDouble(Double::doubleValue).sum();
+            totalLiftedWeight = sets.values().stream().map(Set::totalWeightPerSet).mapToDouble(Double::doubleValue).sum();
         }
         return totalLiftedWeight;
     }
 
     private Set calculateHeaviestLiftedSet() {
         if (Optional.ofNullable(sets).isPresent())
-        return sets.stream()
+        return sets.values().stream()
                 .max(Comparator.comparing(Set::getWeight))
                 .orElseThrow(NoSuchElementException::new);
         else throw new IllegalStateException("sets not initialized");
@@ -111,7 +111,7 @@ public class Exercise implements Reflectable {
 
     private int calculateTotalRepetitions() {
         if (Optional.ofNullable(sets).isPresent()){
-            return sets.stream()
+            return sets.values().stream()
                     .map(Set::getRepetitions)
                     .mapToInt(Integer::intValue).sum();
         }
@@ -143,7 +143,7 @@ public class Exercise implements Reflectable {
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =
-                Stream.of(ComputedFields.values())
+                Stream.of(ImmutableFields.values())
                         .map(Enum::name)
                         .collect(Collectors.toList());
 

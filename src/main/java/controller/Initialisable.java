@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import model.*;
 import model.Set;
+import model.NoOverWriteMap;
 import repository.Repository;
 
 import java.time.Instant;
@@ -35,17 +36,50 @@ public interface Initialisable {
                 .build();
 
         Set setA = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setA2 = new Set.Builder().withRepetitions(5).withWeight(60).build();
+        Set setA3 = new Set.Builder().withRepetitions(5).withWeight(60).build();
         Set setB = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setB2 = new Set.Builder().withRepetitions(5).withWeight(55).build();
+        Set setB3 = new Set.Builder().withRepetitions(5).withWeight(55).build();
         Set setC = new Set.Builder().withRepetitions(5).withWeight(60).build();
         Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();;
         Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setE2 = new Set.Builder().withRepetitions(5).withWeight(40).build();
+        Set setE3 = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setF =new Set.Builder().withRepetitions(5).withWeight(45).build();
 
-        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, Arrays.asList(setA, setA, setA)).build();
-        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, Arrays.asList(setB, setB, setB)).build();
-        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, Collections.singletonList(setC)).build();
-        Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
-        Exercise press = new Exercise.Builder(Exercise.Type.PRESS, Arrays.asList(setD, setD, setF)).build();
+
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        sets1.put(setA2.getSetId(), setA2);
+        sets1.put(setA3.getSetId(), setA3);
+
+        Map<String, Set> sets2 = new NoOverWriteMap<>();
+        sets2.put(setB.getSetId(),setB);
+        sets2.put(setB2.getSetId(), setB2);
+        sets2.put(setB3.getSetId(), setB3);
+
+        Map<String, Set> sets3 = new NoOverWriteMap<>();
+        sets3.put(setC.getSetId(),setC);
+
+        Map<String, Set> sets4 = new NoOverWriteMap<>();
+        sets4.put(setE.getSetId(),setE);
+        sets4.put(setE2.getSetId(), setE2);
+        sets4.put(setE3.getSetId(), setE3);
+
+        Map<String, Set> sets5 = new NoOverWriteMap<>();
+        sets5.put(setD.getSetId(),setD);
+        sets5.put(setD2.getSetId(), setD2);
+        sets5.put(setF.getSetId(), setF);
+
+
+
+        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, sets1).build();
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets2).build();
+        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, sets3).build();
+        Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, sets4).build();
+        Exercise press = new Exercise.Builder(Exercise.Type.PRESS, sets5).build();
 
         Map<String, Exercise> exercisesA = new HashMap<>();
         exercisesA.put(squats.getExerciseId(), squats);

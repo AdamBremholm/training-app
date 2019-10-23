@@ -130,7 +130,7 @@ public class User implements Reflectable {
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =
-                Stream.of(ComputedFields.values())
+                Stream.of(ImmutableFields.values())
                         .map(Enum::name)
                         .collect(Collectors.toList());
 
