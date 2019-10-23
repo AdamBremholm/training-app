@@ -17,6 +17,7 @@ import view.JsonView;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -74,7 +75,7 @@ public class Controller implements Initialisable {
         return templateWorkout;
     }
 
-    private void updateTemplateExercises(List<TemplateExercise> templateExercises, List<TemplateExercise> requestExercises) {
+    private void updateTemplateExercises(Map<String, TemplateExercise> templateExercises, Map<String, TemplateExercise> requestExercises) {
 
 
 

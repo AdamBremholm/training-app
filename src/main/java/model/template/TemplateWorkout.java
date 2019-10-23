@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 
 public class TemplateWorkout {
 
@@ -14,7 +14,7 @@ public class TemplateWorkout {
     private  Instant startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private  Instant endTime;
-    private  List<TemplateExercise> exercises;
+    private Map<String, TemplateExercise> exercises;
     private  TemplateExercise heaviestExercise;
     private  int totalRepetitions;
 
@@ -53,11 +53,11 @@ public class TemplateWorkout {
         this.endTime = endTime;
     }
 
-    public List<TemplateExercise> getExercises() {
+    public Map<String, TemplateExercise> getExercises() {
         return exercises;
     }
 
-    public void setExercises(List<TemplateExercise> exercises) {
+    public void setExercises(Map<String, TemplateExercise> exercises) {
         this.exercises = exercises;
     }
 

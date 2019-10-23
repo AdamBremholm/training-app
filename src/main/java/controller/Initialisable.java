@@ -5,12 +5,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import model.*;
+import model.Set;
 import repository.Repository;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public interface Initialisable {
 
@@ -48,8 +47,15 @@ public interface Initialisable {
         Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
         Exercise press = new Exercise.Builder(Exercise.Type.PRESS, Arrays.asList(setD, setD, setF)).build();
 
-        List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
-        List<Exercise> exercisesB = Arrays.asList(squats, powerClean, press);
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(squats.getExerciseId(), squats);
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        exercisesA.put(deadLift.getExerciseId(), deadLift);
+
+        Map<String, Exercise> exercisesB = new HashMap<>();
+        exercisesB.put(squats.getExerciseId(), squats);
+        exercisesB.put(powerClean.getExerciseId(), powerClean);
+        exercisesB.put(press.getExerciseId(), press);
 
 
         Workout mockWorkout1 = new Workout.Builder(mockUser1, exercisesA)

@@ -71,7 +71,10 @@ public class ControllerTest {
         Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, Arrays.asList(setB, setB, setB)).withExerciseId("2e").build();
         Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, Collections.singletonList(setC)).withExerciseId("3e").build();
 
-        List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(squats.getExerciseId(), squats);
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        exercisesA.put(deadLift.getExerciseId(), deadLift);
 
         mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
                 .withWorkoutId("7b244503-82fd-4cf3-af08-2ffefe5a9320")

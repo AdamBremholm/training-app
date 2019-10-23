@@ -21,7 +21,7 @@ public class Workout implements Reflectable {
     private final Instant startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private final Instant endTime;
-    private final List<Exercise> exercises;
+    private final Map<String, Exercise> exercises;
     private final Exercise heaviestExercise;
     private final int totalRepetitions;
 
@@ -29,7 +29,7 @@ public class Workout implements Reflectable {
     @JsonPOJOBuilder
     public static class Builder {
         private final User user;
-        private final List<Exercise> exercises;
+        private final Map<String, Exercise> exercises;
 
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant startTime = null;
@@ -40,7 +40,7 @@ public class Workout implements Reflectable {
         private String workoutId = null;
 
         @JsonCreator
-        public Builder(@JsonProperty("user") User user, @JsonProperty("exercises") List<Exercise> exercises){
+        public Builder(@JsonProperty("user") User user, @JsonProperty("exercises")Map<String, Exercise> exercises){
             this.user = user;
             this.exercises = exercises;
         }
@@ -122,7 +122,7 @@ public class Workout implements Reflectable {
        return UUID.randomUUID().toString();
     }
 
-    public List<Exercise> getExercises() {
+    public Map<String, Exercise> getExercises() {
         return exercises;
     }
 
@@ -137,14 +137,14 @@ public class Workout implements Reflectable {
     public double liftedPerWorkOut() {
         double totalLiftedWeight = 0;
         if(Optional.ofNullable(exercises).isPresent()){
-          totalLiftedWeight = exercises.stream().map(Exercise::liftedPerExercise).mapToDouble(Double::doubleValue).sum();
+          totalLiftedWeight = exercises.values().stream().map(Exercise::liftedPerExercise).mapToDouble(Double::doubleValue).sum();
         }
         return totalLiftedWeight;
     }
 
     public Exercise calculateHeaviestExercisePerWorkout() {
         if(Optional.ofNullable(exercises).isPresent())
-            return exercises.stream()
+            return exercises.values().stream()
                     .max(Comparator.comparing(Exercise::getHeaviestSet))
                     .orElseThrow(NoSuchElementException::new);
         else
@@ -153,7 +153,7 @@ public class Workout implements Reflectable {
 
     public int calculateTotalRepetitionsPerWorkout() {
         if(Optional.ofNullable(exercises).isPresent())
-            return exercises.stream()
+            return exercises.values().stream()
                     .map(Exercise::getTotalRepetitions)
                     .mapToInt(Integer::intValue)
                     .sum();

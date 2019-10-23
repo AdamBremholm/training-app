@@ -4,9 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -19,8 +17,8 @@ public class WorkoutTest {
     private User mockUser1;
     private User mockUser2;
     private User mockUser3;
-    private List<Exercise> exercisesA;
-    private List<Exercise> exercisesB;
+    private Map<String, Exercise> exercisesA;
+    private Map<String, Exercise> exercisesB;
     private Exercise squats;
     private Exercise benchPress;
     private Exercise deadLift;
@@ -59,8 +57,16 @@ public class WorkoutTest {
          powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
          press = new Exercise.Builder(Exercise.Type.PRESS, Arrays.asList(setD, setD, setF)).build();
 
-         exercisesA = Arrays.asList(squats, benchPress, deadLift);
-         exercisesB = Arrays.asList(squats, powerClean, press);
+
+        exercisesA = new HashMap<>();
+        exercisesA.put(squats.getExerciseId(), squats);
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        exercisesA.put(deadLift.getExerciseId(), deadLift);
+
+        exercisesB = new HashMap<>();
+        exercisesB.put(squats.getExerciseId(), squats);
+        exercisesB.put(powerClean.getExerciseId(), powerClean);
+        exercisesB.put(press.getExerciseId(), press);
 
 
          mockWorkout1 = new Workout.Builder(mockUser1, exercisesA)
@@ -119,7 +125,7 @@ public class WorkoutTest {
 
     @Test
     public void getHeaviestExercise() {
-        assertEquals(squats, mockWorkout1.getHeaviestExercise());
+        assertEquals(squats, mockWorkout2.getHeaviestExercise());
     }
 
     @Test
@@ -134,7 +140,7 @@ public class WorkoutTest {
 
     @Test
     public void calculateHeaviestExercisePerWorkout() {
-        assertEquals(squats, mockWorkout1.calculateHeaviestExercisePerWorkout());
+        assertEquals(squats, mockWorkout2.calculateHeaviestExercisePerWorkout());
     }
 
     @Test
