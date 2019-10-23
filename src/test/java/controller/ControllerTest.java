@@ -214,12 +214,12 @@ public class ControllerTest {
     @Test
     public void getThrowsJsonProcessingErrorWhenItCannotMapToJson()  {
 
-        mapper = null;
         controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), mapper);
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        Mockito.when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
+        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn("non-existent-workout-id");
+        mapper = null;
         controller.get(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
     }

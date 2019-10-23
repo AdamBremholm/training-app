@@ -55,6 +55,7 @@ public interface Initialisable {
         Workout mockWorkout1 = new Workout.Builder(mockUser1, exercisesA)
                 .withStartTime(Instant.parse("2019-10-03T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-03T10:16:30.00Z"))
+                .withWorkoutId("mockId1")
                 .build();
         Workout mockWorkout2 = new Workout.Builder(mockUser2, exercisesB)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
