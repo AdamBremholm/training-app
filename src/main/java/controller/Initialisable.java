@@ -42,11 +42,11 @@ public interface Initialisable {
         Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setF =new Set.Builder().withRepetitions(5).withWeight(45).build();
 
-        Exercise squats = new Exercise.Builder(LiftType.SQUAT, Arrays.asList(setA, setA, setA)).build();
-        Exercise benchPress = new Exercise.Builder(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB)).build();
-        Exercise deadLift = new Exercise.Builder(LiftType.DEADLIFT, Collections.singletonList(setC)).build();
-        Exercise powerClean = new Exercise.Builder(LiftType.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
-        Exercise press = new Exercise.Builder(LiftType.PRESS, Arrays.asList(setD, setD, setF)).build();
+        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, Arrays.asList(setA, setA, setA)).build();
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, Arrays.asList(setB, setB, setB)).build();
+        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, Collections.singletonList(setC)).build();
+        Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, Arrays.asList(setE, setE, setE)).build();
+        Exercise press = new Exercise.Builder(Exercise.Type.PRESS, Arrays.asList(setD, setD, setF)).build();
 
         List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
         List<Exercise> exercisesB = Arrays.asList(squats, powerClean, press);

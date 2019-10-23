@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
 
 import model.Set;
+import org.hibernate.jdbc.Work;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -66,9 +67,9 @@ public class ControllerTest {
         Set setB = new Set.Builder().withRepetitions(5).withWeight(55).withSetId("2s").build();
         Set setC = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("3s").build();
 
-        Exercise squats = new Exercise.Builder(LiftType.SQUAT, Arrays.asList(setA, setA, setA)).withExerciseId("1e").build();
-        Exercise benchPress = new Exercise.Builder(LiftType.BENCHPRESS, Arrays.asList(setB, setB, setB)).withExerciseId("2e").build();
-        Exercise deadLift = new Exercise.Builder(LiftType.DEADLIFT, Collections.singletonList(setC)).withExerciseId("3e").build();
+        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, Arrays.asList(setA, setA, setA)).withExerciseId("1e").build();
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, Arrays.asList(setB, setB, setB)).withExerciseId("2e").build();
+        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, Collections.singletonList(setC)).withExerciseId("3e").build();
 
         List<Exercise> exercisesA = Arrays.asList(squats, benchPress, deadLift);
 
@@ -141,11 +142,11 @@ public class ControllerTest {
     @Test
     public void saveCreatesWorkOutIdIfNoneProvided() {
 
-        ((ObjectNode)mockWorkoutJsonNode).remove(Fields.workoutId.toString());
+        ((ObjectNode)mockWorkoutJsonNode).remove(Workout.Fields.workoutId.name());
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest, mockResponse);
-        assertTrue(res.contains(Fields.workoutId.toString()));
+        assertTrue(res.contains(Workout.Fields.workoutId.name()));
         assertEquals(5, repository.size());
 
     }
@@ -153,7 +154,7 @@ public class ControllerTest {
     @Test
     public void saveCreatesUserIdIfNoneProvided() {
 
-        ((ObjectNode)mockWorkoutJsonNode.get(Fields.user.toString())).remove(Fields.userId.toString());
+        ((ObjectNode)mockWorkoutJsonNode.get(Workout.Fields.user.name())).remove(User.Fields.userId.name());
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest, mockResponse);
@@ -218,7 +219,7 @@ public class ControllerTest {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn("non-existent-workout-id");
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("non-existent-workout-id");
         mapper = null;
         controller.get(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
@@ -229,12 +230,12 @@ public class ControllerTest {
     public void updateWorkoutId() throws JsonProcessingException {
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Fields.workoutId.toString(), "1234");
+        jsonNode.put(Workout.Fields.workoutId.name(), "1234");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals(jsonNodeRes.get(Fields.workoutId.toString()).asText(), "1234");
+        assertEquals(jsonNodeRes.get(Workout.Fields.workoutId.name()).asText(), "1234");
     }
 
     @Test
@@ -242,12 +243,12 @@ public class ControllerTest {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Fields.startTime.toString(), "2019-10-03 10:15:30");
+        jsonNode.put(Workout.Fields.startTime.name(), "2019-10-03 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(Fields.startTime.toString()).asText());
+        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(Workout.Fields.startTime.name()).asText());
     }
 
     @Test
@@ -255,12 +256,12 @@ public class ControllerTest {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Fields.endTime.toString(), "2019-10-13 10:15:30");
+        jsonNode.put(Workout.Fields.endTime.name(), "2019-10-13 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Fields.endTime.toString()).asText());
+        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Workout.Fields.endTime.name()).asText());
     }
 
     @Test (expected = IllegalArgumentException.class)
@@ -268,22 +269,22 @@ public class ControllerTest {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Fields.endTime.toString(), "2017-10-13 10:15:30");
+        jsonNode.put(Workout.Fields.endTime.name(), "2017-10-13 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
         fail();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateNonExistingFieldInRootObjectThrowsException() {
+    public void updateNonExistingFieldInRootObjectThrowsException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("non-existing-field", "28" );
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         Mockito.doThrow(IllegalArgumentException.class).when(mockResponse).status(HTTP_BAD_REQUEST);
         String result = controller.update(mockRequest, mockResponse);
         fail();
@@ -294,24 +295,24 @@ public class ControllerTest {
 
         repository.save(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(Fields.email.toString(), "gurkan@gmail.com");
+        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Fields.user.toString(), userJsonNode);
+        workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Fields.user.toString()).get(Fields.email.toString()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateUserObjectInWorkoutUnknownFieldNameInRequestThrowsException() {
+    public void updateUserObjectInWorkoutUnknownFieldNameInRequestThrowsException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("johnny", "gurkan@gmail.com");
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         Mockito.doThrow(IllegalArgumentException.class).when(mockResponse).status(HTTP_BAD_REQUEST);
         controller.update(mockRequest, mockResponse);
     }
@@ -322,47 +323,47 @@ public class ControllerTest {
 
         repository.save(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(Fields.email.toString(), "gurkan@gmail.com");
-        userJsonNode.put(Fields.weight.toString(), "60.53");
+        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
+        userJsonNode.put(User.Fields.weight.name(), "60.53");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Fields.user.toString(), userJsonNode);
-        workoutJsonNode.put(Fields.workoutId.toString(), "123");
+        workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
+        workoutJsonNode.put(Workout.Fields.workoutId.name(), "123");
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Fields.user.toString()).get(Fields.email.toString()).asText());
-        assertEquals("60.53", jsonNodeRes.get(Fields.user.toString()).get(Fields.weight.toString()).asText());
-        assertEquals("123", jsonNodeRes.get(Fields.workoutId.toString()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("60.53", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.weight.name()).asText());
+        assertEquals("123", jsonNodeRes.get(Workout.Fields.workoutId.name()).asText());
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void updateComputedValuesGenerateIllegalArgumentException() {
+    public void updateComputedValuesGenerateIllegalArgumentException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(ComputedFields.heaviestExercise.toString(), exerciseNode );
+        workoutJsonNode.replace(ComputedFields.heaviestExercise.name(), exerciseNode );
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         fail();
 
     }
 
     @Test (expected = IllegalArgumentException.class)
-    public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() {
+    public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ComputedFields.heaviestSet.toString(), setNode);
+        exerciseNode.replace(ComputedFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Fields.exercises.toString(), exerciseArray );
+        workoutJsonNode.replace(Workout.Fields.exercises.name(), exerciseArray );
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkout3.getWorkoutId());
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         fail();
     }
@@ -374,7 +375,7 @@ public class ControllerTest {
         repository.save(mockWorkout3);
         Workout beforeResult = repository.get(mockWorkOutId);
         assertNotNull(beforeResult);
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn(mockWorkOutId);
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkOutId);
         String result = controller.delete(mockRequest, mockResponse);
         repository.get(mockWorkOutId);
         fail();
@@ -383,7 +384,7 @@ public class ControllerTest {
     @Test
     public void deleteWhenNoMatchGenerates404(){
         repository.save(mockWorkout3);
-        Mockito.when(mockRequest.params(Fields.workoutId.toString())).thenReturn("a-workoutId-noOne-has");
+        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("a-workoutId-noOne-has");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String result = controller.delete(mockRequest, mockResponse);

@@ -5,22 +5,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonDeserialize(builder = Exercise.Builder.class)
-public class Exercise  {
+public class Exercise implements Reflectable {
 
     private String exerciseId;
-    private final LiftType liftType;
+    private final Type type;
     private final List<Set> sets;
     private final Set heaviestSet;
     private final int totalRepetitions;
 
 
+
     @JsonPOJOBuilder
     public static class Builder {
 
-        private final LiftType liftType;
+        private final Type type;
         private final List<Set> sets;
 
         private String exerciseId = null;
@@ -28,8 +32,8 @@ public class Exercise  {
         private Set heaviestSet = null;
 
         @JsonCreator
-        public Builder(@JsonProperty("liftType") LiftType liftType, @JsonProperty("sets") List<Set> sets) {
-            this.liftType = liftType;
+        public Builder(@JsonProperty("type") Type type, @JsonProperty("sets") List<Set> sets) {
+            this.type = type;
             this.sets = sets;
 
         }
@@ -58,7 +62,7 @@ public class Exercise  {
 
     public Exercise(Builder builder) {
         this.exerciseId = generateRandomUUIDifNotProvided(builder);
-        this.liftType = builder.liftType;
+        this.type = builder.type;
         this.sets = builder.sets;
         this.totalRepetitions = calculateTotalRepetitions();
         this.heaviestSet = calculateHeaviestLiftedSet();
@@ -81,8 +85,8 @@ public class Exercise  {
         return exerciseId;
     }
 
-    public LiftType getLiftType() {
-        return liftType;
+    public Type getType() {
+        return type;
     }
 
     public List<Set> getSets() {
@@ -126,10 +130,47 @@ public class Exercise  {
     public String toString() {
         return "Exercise{" +
                 "exerciseId='" + exerciseId + '\'' +
-                ", liftType=" + liftType +
+                ", type=" + type +
                 ", sets=" + sets +
                 ", heaviestSet=" + heaviestSet +
                 ", totalRepetitions=" + totalRepetitions +
                 '}';
+    }
+
+    @Override
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
+        Field[] fields = reflectable.getClass().getDeclaredFields();
+        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
+
+        List<String> computedEnumList =
+                Stream.of(ComputedFields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        List<String> enumList =
+                Stream.of(Exercise.Fields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        actualFieldNames.removeAll(computedEnumList);
+
+        return actualFieldNames.containsAll(enumList);
+    }
+
+    public static enum Type {
+        SQUAT,
+        BENCHPRESS,
+        DEADLIFT,
+        POWERCLEAN,
+        PRESS,
+        CHINS;
+
+    }
+
+    public static enum Fields {
+                sets,
+                set,
+                exerciseId,
+                type;
     }
 }

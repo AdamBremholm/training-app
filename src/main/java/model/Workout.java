@@ -6,11 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonDeserialize(builder = Workout.Builder.class)
-public class Workout {
+public class Workout implements Reflectable {
 
     private final String workoutId;
     private final User user;
@@ -169,5 +172,34 @@ public class Workout {
                 ", heaviestExercise=" + heaviestExercise +
                 ", totalRepetitions=" + totalRepetitions +
                 '}';
+    }
+
+    @Override
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
+        Field[] fields = reflectable.getClass().getDeclaredFields();
+        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
+
+        List<String> computedEnumList =
+                Stream.of(ComputedFields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        List<String> enumList =
+                Stream.of(Workout.Fields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        actualFieldNames.removeAll(computedEnumList);
+
+        return actualFieldNames.containsAll(enumList);
+    }
+
+    public static enum Fields {
+
+        exercises,
+        user,
+        workoutId,
+        startTime,
+        endTime,
     }
 }

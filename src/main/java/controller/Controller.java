@@ -6,17 +6,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.ComputedFields;
-import model.Fields;
 import model.Workout;
+import model.template.TemplateExercise;
+import model.template.TemplateUser;
 import model.template.TemplateWorkout;
 import repository.Repository;
 import spark.Request;
 import spark.Response;
 import view.JsonView;
 
-import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -60,13 +59,38 @@ public class Controller implements Initialisable {
     }
 
     private TemplateWorkout updateTemplateWorkout(TemplateWorkout templateWorkout, TemplateWorkout requestData) throws IllegalArgumentException {
-        Optional.ofNullable(requestData.getWorkoutId()).ifPresent(templateWorkout::setWorkoutId);
-        Optional.ofNullable(requestData.getEndTime()).ifPresent(templateWorkout::setEndTime);
-        Optional.ofNullable(requestData.getStartTime()).ifPresent(templateWorkout::setStartTime);
-        Optional.ofNullable(requestData.getExercises()).ifPresent(templateWorkout::setExercises);
-        Optional.ofNullable(requestData.getUser()).ifPresent(templateWorkout::setUser);
+
+        Optional<TemplateWorkout> optionalRequestWorkout = Optional.ofNullable(requestData);
+        optionalRequestWorkout.map(TemplateWorkout::getWorkoutId).ifPresent(templateWorkout::setWorkoutId);
+        optionalRequestWorkout.map(TemplateWorkout::getEndTime).ifPresent(templateWorkout::setEndTime);
+        optionalRequestWorkout.map(TemplateWorkout::getStartTime).ifPresent(templateWorkout::setStartTime);
+     //   optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent(templateWorkout::setExercises);
+
+        optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent((exerciseList)-> updateTemplateExercises(templateWorkout.getExercises(), exerciseList));
+
+
+        updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
         validateTemplateWorkout(templateWorkout);
         return templateWorkout;
+    }
+
+    private void updateTemplateExercises(List<TemplateExercise> templateExercises, List<TemplateExercise> requestExercises) {
+
+
+
+    }
+
+    private void updateTemplateUser(TemplateUser templateUser, TemplateUser requestUser) {
+
+        Optional<TemplateUser> optionalRequestUser = Optional.ofNullable(requestUser);
+
+        optionalRequestUser.map(TemplateUser::getEmail).ifPresent(templateUser::setEmail);
+        optionalRequestUser.map(TemplateUser::getPassword).ifPresent(templateUser::setPassword);
+        optionalRequestUser.map(TemplateUser::getUserId).ifPresent(templateUser::setUserId);
+        optionalRequestUser.map(TemplateUser::getUsername).ifPresent(templateUser::setUsername);
+        optionalRequestUser.map(TemplateUser::getHeight).filter((height)-> height !=0).ifPresent(templateUser::setHeight);
+        optionalRequestUser.map(TemplateUser::getWeight).filter((weight)-> weight !=0).ifPresent(templateUser::setWeight);
+
     }
 
     private void validateTemplateWorkout(TemplateWorkout templateWorkout) throws IllegalArgumentException{
@@ -97,6 +121,7 @@ public class Controller implements Initialisable {
 
     private Workout mapTemplateToWorkout(TemplateWorkout updatedTemplateWorkout) throws JsonProcessingException {
         String result = JsonView.templateWorkoutAsJson(updatedTemplateWorkout, mapper);
+        System.out.println(result);
         return mapper.readValue(result, Workout.class);
     }
 
@@ -129,7 +154,7 @@ public class Controller implements Initialisable {
     public String get(Request request, Response response)  {
 
         try {
-            String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(() -> new IllegalArgumentException("need workoutId in url"));
+            String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(() -> new IllegalArgumentException("need workoutId in url"));
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(repository.get(workoutId), mapper);
@@ -146,9 +171,9 @@ public class Controller implements Initialisable {
 
     }
 
-    public String update(Request request, Response response)  {
+    public String update(Request request, Response response) throws JsonProcessingException {
         try {
-            String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
+            String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             Workout oldWorkout = repository.get(workoutId);
             TemplateWorkout templateWorkout = mapToTemplate(oldWorkout);
             JsonNode jsonNode = mapStringToJsonNode(request.body());
@@ -160,13 +185,14 @@ public class Controller implements Initialisable {
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(result, mapper);
-        } catch (JsonProcessingException jpe) {
+       } catch (JsonProcessingException jpe) {
             response.status(HTTP_BAD_REQUEST);
             return jpe.toString();
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
         }
+
 
     }
 
@@ -175,7 +201,7 @@ public class Controller implements Initialisable {
         try {
             response.status(HTTP_NO_CONTENT);
             response.type(APPLICATION_JSON);
-            String workoutId = Optional.ofNullable(request.params(Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
+            String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             repository.delete(workoutId);
             return "";
         }  catch (NoSuchElementException nse){

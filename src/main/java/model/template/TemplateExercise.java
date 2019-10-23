@@ -1,6 +1,6 @@
 package model.template;
 
-import model.LiftType;
+import model.Exercise;
 import model.Set;
 
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.List;
 public class TemplateExercise {
 
     private String exerciseId;
-    private  LiftType liftType;
-    private  List<Set> sets;
+    private Type type;
+    private  List<TemplateSet> sets;
     private  Set heaviestSet;
     private  int totalRepetitions;
 
@@ -24,19 +24,19 @@ public class TemplateExercise {
         this.exerciseId = exerciseId;
     }
 
-    public LiftType getLiftType() {
-        return liftType;
+    public Type getType() {
+        return type;
     }
 
-    public void setLiftType(LiftType liftType) {
-        this.liftType = liftType;
+    public void setType(Type type) {
+        this.type = type;
     }
 
-    public List<Set> getSets() {
+    public List<TemplateSet> getSets() {
         return sets;
     }
 
-    public void setSets(List<Set> sets) {
+    public void setSets(List<TemplateSet> sets) {
         this.sets = sets;
     }
 
@@ -54,5 +54,14 @@ public class TemplateExercise {
 
     public void setTotalRepetitions(int totalRepetitions) {
         this.totalRepetitions = totalRepetitions;
+    }
+
+    public static enum  Type {
+        SQUAT,
+        BENCHPRESS,
+        DEADLIFT,
+        POWERCLEAN,
+        PRESS,
+        CHINS;
     }
 }

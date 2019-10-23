@@ -1,8 +1,7 @@
 package model.template;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import model.Exercise;
-import model.User;
+
 
 import java.time.Instant;
 import java.util.List;
@@ -10,13 +9,13 @@ import java.util.List;
 public class TemplateWorkout {
 
     private  String workoutId;
-    private  User user;
+    private  TemplateUser user;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private  Instant startTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private  Instant endTime;
-    private  List<Exercise> exercises;
-    private  Exercise heaviestExercise;
+    private  List<TemplateExercise> exercises;
+    private  TemplateExercise heaviestExercise;
     private  int totalRepetitions;
 
     public TemplateWorkout() {
@@ -30,11 +29,11 @@ public class TemplateWorkout {
         this.workoutId = workoutId;
     }
 
-    public User getUser() {
+    public TemplateUser getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(TemplateUser user) {
         this.user = user;
     }
 
@@ -54,19 +53,19 @@ public class TemplateWorkout {
         this.endTime = endTime;
     }
 
-    public List<Exercise> getExercises() {
+    public List<TemplateExercise> getExercises() {
         return exercises;
     }
 
-    public void setExercises(List<Exercise> exercises) {
+    public void setExercises(List<TemplateExercise> exercises) {
         this.exercises = exercises;
     }
 
-    public Exercise getHeaviestExercise() {
+    public TemplateExercise getHeaviestExercise() {
         return heaviestExercise;
     }
 
-    public void setHeaviestExercise(Exercise heaviestExercise) {
+    public void setHeaviestExercise(TemplateExercise heaviestExercise) {
         this.heaviestExercise = heaviestExercise;
     }
 

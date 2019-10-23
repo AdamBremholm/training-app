@@ -5,11 +5,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.lang.reflect.Field;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonDeserialize(builder = User.Builder.class)
-public class User {
+public class User implements Reflectable {
 
     private final String userId;
     private final String username;
@@ -31,9 +36,9 @@ public class User {
 
         @JsonCreator
         public Builder(@JsonProperty("username") String username, @JsonProperty("email") String email, @JsonProperty("password") String password) {
-            this.username = username;
-            this.email = email;
-            this.password = password;
+            this.username = Optional.ofNullable(username).orElseThrow(IllegalArgumentException::new);
+            this.email = Optional.ofNullable(email).orElseThrow(IllegalArgumentException::new);
+            this.password = Optional.ofNullable(password).orElseThrow(IllegalArgumentException::new);
         }
 
 
@@ -61,8 +66,8 @@ public class User {
         this.username = builder.username;
         this.email = builder.email;
         this.password = builder.password;
-        this.weight = builder.weight;
-        this.height = builder.height;
+        this.weight = checkPositiveDouble(builder.weight);
+        this.height = checkPositiveDouble(builder.height);
     }
 
     private String generateRandomUUIDifNotProvided(Builder builder) {
@@ -100,6 +105,13 @@ public class User {
         return UUID.randomUUID().toString();
     }
 
+    private double checkPositiveDouble(double number) {
+        if (number>=0)
+            return number;
+        else
+            throw new NumberFormatException("only positive numbers allowed");
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -110,5 +122,36 @@ public class User {
                 ", weight=" + weight +
                 ", height=" + height +
                 '}';
+    }
+
+    @Override
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
+        Field[] fields = reflectable.getClass().getDeclaredFields();
+        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
+
+        List<String> computedEnumList =
+                Stream.of(ComputedFields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        List<String> enumList =
+                Stream.of(User.Fields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        actualFieldNames.removeAll(computedEnumList);
+
+        return actualFieldNames.containsAll(enumList);
+    }
+
+    public enum Fields {
+
+        userId,
+        email,
+        password,
+        height,
+        weight,
+        username;
+
     }
 }

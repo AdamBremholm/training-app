@@ -4,11 +4,16 @@ package model;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.lang.reflect.Field;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonDeserialize(builder = Set.Builder.class)
-public class Set implements Comparable<Set> {
+public class Set implements Comparable<Set>, Reflectable {
 
     private final String setId;
     private final int repetitions;
@@ -48,6 +53,7 @@ public class Set implements Comparable<Set> {
        this.setId = generateSetIdIfNotProvided(builder);
        this.repetitions = checkPositiveInteger(builder.repetitions);
        this.weight = checkPositiveDouble(builder.weight);
+
     }
 
     private String generateSetIdIfNotProvided(Builder builder) {
@@ -111,4 +117,31 @@ public class Set implements Comparable<Set> {
                 ", weight=" + weight +
                 '}';
     }
+
+    @Override
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
+        Field[] fields = reflectable.getClass().getDeclaredFields();
+        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
+
+        List<String> computedEnumList =
+                Stream.of(ComputedFields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        List<String> enumList =
+                Stream.of(Set.Fields.values())
+                        .map(Enum::name)
+                        .collect(Collectors.toList());
+
+        actualFieldNames.removeAll(computedEnumList);
+
+        return actualFieldNames.containsAll(enumList);
+    }
+
+    public static enum Fields {
+        setId,
+        repetitions,
+        weight;
+    }
+
 }
