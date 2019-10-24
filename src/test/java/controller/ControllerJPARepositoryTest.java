@@ -292,23 +292,11 @@ public class ControllerJPARepositoryTest {
         assertEquals("2019-10-03 10:15:30",jsonNodeRes.get(Workout.Fields.startTime.name()).asText() );
     }
 
-    @Test
-    public void updateEndTime() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
-        ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Workout.Fields.endTime.name(), "2019-10-13 10:15:30");
-        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
-        String result = controller.update(mockRequest, mockResponse);
-        JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Workout.Fields.endTime.name()).asText());
-    }
-
-    @Test
+    @Test //Fixat behöver bara sätta tillbak trycatch
     public void updateEndTimeCantBeBeforeStartTime() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put(Workout.Fields.endTime.name(), "2017-10-13 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
@@ -320,10 +308,10 @@ public class ControllerJPARepositoryTest {
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class) //Fixat behöver bara sätta tillbak trycatch
     public void updateNonExistingFieldInRootObjectThrowsException() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("non-existing-field", "28");
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
@@ -336,7 +324,24 @@ public class ControllerJPARepositoryTest {
     @Test
     public void updateUserObjectInWorkout() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        User resultUser = new User.Builder("a", "gurkan@gmail.com", "c")
+                .withUserId("mockUserId4")
+                .build();
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("A").build();
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets1).withExerciseId("2e").build();
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        Workout resultWorkout = new Workout.Builder(resultUser, exercisesA)
+                .withWorkoutId(mockWorkout3.getWorkoutId())
+                .withStartTime(Instant.parse("2019-10-03T10:15:30Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
+                .build();
+
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
         ObjectNode userJsonNode = mapper.createObjectNode();
         userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
