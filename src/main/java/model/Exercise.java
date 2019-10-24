@@ -33,8 +33,8 @@ public class Exercise implements Reflectable {
 
         @JsonCreator
         public Builder(@JsonProperty("type") Type type, @JsonProperty("sets") Map<String, Set> sets) {
-            this.type = type;
-            this.sets = sets;
+            this.type = Optional.ofNullable(type).orElseThrow(IllegalArgumentException::new);
+            this.sets = Optional.ofNullable(sets).orElseThrow(IllegalArgumentException::new);
 
         }
 
@@ -102,20 +102,16 @@ public class Exercise implements Reflectable {
     }
 
     private Set calculateHeaviestLiftedSet() {
-        if (Optional.ofNullable(sets).isPresent())
         return sets.values().stream()
                 .max(Comparator.comparing(Set::getWeight))
                 .orElseThrow(NoSuchElementException::new);
-        else throw new IllegalStateException("sets not initialized");
     }
 
     private int calculateTotalRepetitions() {
-        if (Optional.ofNullable(sets).isPresent()){
             return sets.values().stream()
                     .map(Set::getRepetitions)
                     .mapToInt(Integer::intValue).sum();
-        }
-        else throw new IllegalStateException("sets not initialized");
+
     }
 
     public Set getHeaviestSet() {
@@ -136,6 +132,8 @@ public class Exercise implements Reflectable {
                 ", totalRepetitions=" + totalRepetitions +
                 '}';
     }
+
+
 
     @Override
     public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
@@ -173,4 +171,6 @@ public class Exercise implements Reflectable {
                 exerciseId,
                 type;
     }
+
+
 }

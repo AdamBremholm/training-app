@@ -39,6 +39,16 @@ public class ExerciseTest {
 
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructorThrowsIllegalArgumentExceptionWhenNull() {
+        new Exercise.Builder(null, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructorThrowsIllegalArgumentExceptionWhenNull2() {
+        new Exercise.Builder(Exercise.Type.SQUAT, null);
+    }
+
     @Test
     public void getExerciseId() {
         assertEquals(exerciseId, exercise.getExerciseId());

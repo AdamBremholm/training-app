@@ -120,9 +120,43 @@ public class WorkoutTest {
                 .build();
     }
 
-    @Test
+    @Test (expected =  IllegalArgumentException.class)
     public void IllegalArgumentExceptionIsThrownIfEndTimeIsBeforeStartTime() {
+        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+                .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
+                .withEndTime(Instant.parse("2019-10-04T16:16:30.00Z"))
+                .build();
+        fail();
+    }
 
+    @Test
+    public void okToConstructWithOnlyStartTimeOnlyEndTimeOrNoTime() {
+        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+                .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
+                .build();
+        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+                .withEndTime(Instant.parse("2019-10-05T15:15:30.00Z"))
+                .build();
+        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+                .build();
+    }
+
+
+
+    @Test(expected =  IllegalArgumentException.class)
+    public void IllegalArgumentExceptionIsThrownIfMandatoryParamsNull() {
+        mockWorkout4 = new Workout.Builder(null, exercisesB)
+                .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
+                .build();
+        fail();
+    }
+
+    @Test(expected =  IllegalArgumentException.class)
+    public void IllegalArgumentExceptionIsThrownIfMandatoryParamsNull2() {
+        mockWorkout4 = new Workout.Builder(mockUser1, null)
+                .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
+                .build();
+        fail();
     }
 
     @Test
@@ -168,6 +202,12 @@ public class WorkoutTest {
     @Test
     public void liftedPerWorkOut() {
         assertEquals(2025.0, mockWorkout1.liftedPerWorkOut(), 0.001);
+    }
+
+    @Test
+    public void fieldsEnumContainsNonComputedFieldsOfParent() {
+
+        assertTrue(mockWorkout1.fieldsEnumContainsNonComputedFieldsOfParent(mockWorkout1, EnumSet.allOf(ImmutableFields.class)));
     }
 
     @Test

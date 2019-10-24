@@ -2,8 +2,6 @@ package repository;
 
 
 import model.Workout;
-
-
 import java.util.List;
 
 public class JPARepository implements Repository {

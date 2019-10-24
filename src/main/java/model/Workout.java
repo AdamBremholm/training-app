@@ -41,8 +41,8 @@ public class Workout implements Reflectable {
 
         @JsonCreator
         public Builder(@JsonProperty("user") User user, @JsonProperty("exercises")Map<String, Exercise> exercises){
-            this.user = user;
-            this.exercises = exercises;
+            this.user = Optional.ofNullable(user).orElseThrow(IllegalArgumentException::new);
+            this.exercises = Optional.ofNullable(exercises).orElseThrow(IllegalArgumentException::new);
         }
 
         public Builder withStartTime(Instant startTime){
@@ -88,8 +88,10 @@ public class Workout implements Reflectable {
     }
 
     private void ifEndTimeBeforeStartTimeThrowException(Instant startTime, Instant endTime) {
-        if (endTime.isBefore(startTime))
-            throw new IllegalArgumentException("endTime cannot be before startTime");
+        if(Optional.ofNullable(startTime).isPresent() && Optional.ofNullable(endTime).isPresent()) {
+            if (endTime.isBefore(startTime))
+                throw new IllegalArgumentException("endTime cannot be before startTime");
+        }
     }
 
     private String generateRandomUUIDifNotProvided(Builder builder) {
@@ -143,22 +145,16 @@ public class Workout implements Reflectable {
     }
 
     public Exercise calculateHeaviestExercisePerWorkout() {
-        if(Optional.ofNullable(exercises).isPresent())
             return exercises.values().stream()
                     .max(Comparator.comparing(Exercise::getHeaviestSet))
                     .orElseThrow(NoSuchElementException::new);
-        else
-            throw new IllegalStateException("exercises not initialized");
     }
 
     public int calculateTotalRepetitionsPerWorkout() {
-        if(Optional.ofNullable(exercises).isPresent())
             return exercises.values().stream()
                     .map(Exercise::getTotalRepetitions)
                     .mapToInt(Integer::intValue)
                     .sum();
-        else
-            throw new IllegalStateException("exercises not initialized");
     }
 
 
@@ -191,6 +187,7 @@ public class Workout implements Reflectable {
                         .collect(Collectors.toList());
 
         actualFieldNames.removeAll(computedEnumList);
+        actualFieldNames.add(Fields.workoutId.name());
 
         return actualFieldNames.containsAll(enumList);
     }

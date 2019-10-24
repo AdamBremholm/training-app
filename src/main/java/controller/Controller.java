@@ -167,7 +167,6 @@ public class Controller implements Initialisable {
 
     private Workout mapTemplateToWorkout(TemplateWorkout updatedTemplateWorkout) throws JsonProcessingException {
         String result = JsonView.templateWorkoutAsJson(updatedTemplateWorkout, mapper);
-        System.out.println(result);
         return mapper.readValue(result, Workout.class);
     }
 
@@ -204,20 +203,17 @@ public class Controller implements Initialisable {
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(repository.get(workoutId), mapper);
-        } catch (JsonProcessingException jpe) {
+        } catch (JsonProcessingException | IllegalArgumentException jpe) {
             response.status(HTTP_BAD_REQUEST);
             return jpe.toString();
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
-        } catch (IllegalArgumentException iae){
-            response.status(HTTP_BAD_REQUEST);
-            return iae.toString();
         }
 
     }
 
-    public String update(Request request, Response response) throws JsonProcessingException {
+    public String update(Request request, Response response)  {
         try {
             String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             Workout oldWorkout = repository.get(workoutId);
@@ -231,15 +227,12 @@ public class Controller implements Initialisable {
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(result, mapper);
-       } catch (JsonProcessingException jpe) {
+       } catch (JsonProcessingException | IllegalArgumentException jpe) {
             response.status(HTTP_BAD_REQUEST);
             return jpe.toString();
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
-        } catch (IllegalArgumentException iae){
-            response.status(HTTP_BAD_REQUEST);
-            return iae.toString();
         }
 
 
@@ -265,26 +258,26 @@ public class Controller implements Initialisable {
 
 
     public List<Workout> findByUserId(String userId) {
-        return null;
+       return repository.findByUserId(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
     public int size() {
-        return 0;
+        return repository.size();
     }
 
 
     public double totalLiftedWeightByUser(String userId) {
-        return 0;
+        return repository.totalLiftedWeightByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
     public double heaviestLiftByUser(String userId) {
-        return 0;
+       return repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
     public int totalLiftsByUser(String userId) {
-        return 0;
+        return repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 }
