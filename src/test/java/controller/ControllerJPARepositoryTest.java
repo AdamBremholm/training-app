@@ -247,7 +247,8 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void updateWorkoutIdThrowsIllegalArgumentException() throws JsonProcessingException {
-        repository.save(mockWorkout3);
+       when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put(Workout.Fields.workoutId.name(), "1234");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
@@ -261,15 +262,34 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void updateStartTime() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
+        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put(Workout.Fields.startTime.name(), "2019-10-03 10:15:30");
         Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+
+        User resultUser = new User.Builder("a", "b", "c")
+                .withUserId("mockUserId4")
+                .build();
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("A").build();
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets1).withExerciseId("2e").build();
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        Workout resultWorkout = new Workout.Builder(resultUser, exercisesA)
+                .withWorkoutId(mockWorkout3.getWorkoutId())
+                .withStartTime(Instant.parse("2019-10-03T10:15:30Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
+                .build();
+
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(Workout.Fields.startTime.name()).asText());
+        assertEquals("2019-10-03 10:15:30",jsonNodeRes.get(Workout.Fields.startTime.name()).asText() );
     }
 
     @Test
@@ -359,7 +379,7 @@ public class ControllerJPARepositoryTest {
     }
 
     @Test
-    public void updateMultipleValuesInNestedExercisesInWorkout() {
+    public void updateMultipleValuesInNestedExercisesInWorkout() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -413,7 +433,7 @@ public class ControllerJPARepositoryTest {
     }
 
     @Test
-    public void newSetIdAndExerciseIdAreIgnored() {
+    public void newSetIdAndExerciseIdAreIgnored() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -460,7 +480,7 @@ public class ControllerJPARepositoryTest {
     }
 
     @Test
-    public void ifNoIdFoundNothingUpdated() {
+    public void ifNoIdFoundNothingUpdated() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -542,7 +562,7 @@ public class ControllerJPARepositoryTest {
     }
 
     @Test
-    public void updateWithNoCorrectWorkoutId() {
+    public void updateWithNoCorrectWorkoutId() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();

@@ -351,7 +351,7 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void updateMultipleValuesInNestedExercisesInWorkout()  {
+    public void updateMultipleValuesInNestedExercisesInWorkout() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -400,7 +400,7 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void newSetIdAndExerciseIdAreIgnored()  {
+    public void newSetIdAndExerciseIdAreIgnored() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -444,7 +444,7 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void ifNoIdFoundNothingUpdated()  {
+    public void ifNoIdFoundNothingUpdated() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
 
@@ -525,7 +525,7 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void updateWithNoCorrectWorkoutId()  {
+    public void updateWithNoCorrectWorkoutId() throws JsonProcessingException {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
