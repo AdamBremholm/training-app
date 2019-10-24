@@ -95,8 +95,6 @@ public class ControllerMapRepositoryTest {
 
         mockWorkOutId = mockWorkout3.getWorkoutId();
 
-
-
     }
 
     @Mock
@@ -179,9 +177,10 @@ public class ControllerMapRepositoryTest {
     @Test
     public void saveThrowsExceptionIfIncorrectJsonIsInputted()  {
         Mockito.when(mockRequest.body()).thenReturn("");
-        assertEquals(4, repository.size());
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         String res = controller.save(mockRequest, mockResponse);
-        assertEquals(4, repository.size());
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test(expected = IllegalArgumentException.class)
