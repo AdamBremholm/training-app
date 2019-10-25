@@ -49,9 +49,15 @@ public class ControllerJPARepositoryTest {
     @Mock
     JPARepository mockRepository;
 
-
     @Captor
     ArgumentCaptor argCaptor;
+
+    @Mock
+    User mockUser;
+
+    @Mock
+    Workout mockWorkout;
+
 
 
 
@@ -406,7 +412,9 @@ public class ControllerJPARepositoryTest {
     @Test
     public void updateMultipleValuesInNestedExercisesInWorkout() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
         setNode1.put(Set.Fields.repetitions.name(), "11");
@@ -437,16 +445,44 @@ public class ControllerJPARepositoryTest {
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
+
+        User resultUser = new User.Builder("a", "gurkan@gmail.com", "c")
+                .withUserId("mockUserId4")
+                .build();
+        Set setA = new Set.Builder().withRepetitions(11).withWeight(60).withSetId("A").build();
+        Set setA2 = new Set.Builder().withRepetitions(22).withWeight(60).withSetId("A2").build();
+        Set setA3 = new Set.Builder().withRepetitions(5).withWeight(33).withSetId("A3").build();
+        Set setB = new Set.Builder().withRepetitions(5).withWeight(44).withSetId("B").build();
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        sets1.put(setA2.getSetId(), setA2);
+        sets1.put(setA3.getSetId(), setA3);
+        Map<String, Set> sets2 = new NoOverWriteMap<>();
+        sets2.put(setB.getSetId(), setB);
+
+        Exercise chins = new Exercise.Builder(Exercise.Type.CHINS, sets1).withExerciseId("1e").build();
+        Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, sets2).withExerciseId("2e").build();
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(chins.getExerciseId(), chins);
+        exercisesA.put(powerClean.getExerciseId(), powerClean);
+
+        Workout resultWorkout = new Workout.Builder(resultUser, exercisesA)
+                .withWorkoutId(mockWorkout3.getWorkoutId())
+                .withStartTime(Instant.parse("2019-10-03T10:15:30Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
+                .build();
+
+
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
 
-        /*
-        assertEquals(Exercise.Type.CHINS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
-        assertEquals(Exercise.Type.POWERCLEAN, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
-        assertEquals(11, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
-        assertEquals(22, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
-        assertEquals(33, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
-        assertEquals(44, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getSets().get("B").getWeight(), DELTA);
-         */
+        when(mockRepository.get(anyString())).thenReturn(resultWorkout);
+        assertEquals(Exercise.Type.CHINS, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
+        assertEquals(Exercise.Type.POWERCLEAN, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
+        assertEquals(11, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
+        assertEquals(22, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
+        assertEquals(33, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
+        assertEquals(44, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getSets().get("B").getWeight(), DELTA);
 
         assertTrue(result.contains("11"));
         assertTrue(result.contains("22"));
@@ -456,57 +492,12 @@ public class ControllerJPARepositoryTest {
         assertTrue(result.contains(Exercise.Type.POWERCLEAN.name()));
     }
 
-    @Test
-    public void newSetIdAndExerciseIdAreIgnored() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
-
-        ObjectNode setNode1 = mapper.createObjectNode();
-        setNode1.put(Set.Fields.repetitions.name(), "11");
-        ObjectNode setNode2 = mapper.createObjectNode();
-        setNode2.put(Set.Fields.setId.name(), "NewValue");
-        setNode2.put(Set.Fields.repetitions.name(), "22");
-        ObjectNode setNode3 = mapper.createObjectNode();
-        setNode3.put(Set.Fields.weight.name(), "33");
-        ObjectNode setNode4 = mapper.createObjectNode();
-        setNode4.put(Set.Fields.weight.name(), "44");
-        ObjectNode setsNode1 = mapper.createObjectNode();
-        setsNode1.replace("A", setNode1);
-        setsNode1.replace("A2", setNode2);
-        setsNode1.replace("A3", setNode3);
-        ObjectNode setsNode2 = mapper.createObjectNode();
-        setsNode2.replace("B", setNode4);
-        ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), Exercise.Type.CHINS.name());
-        exerciseNode1.put(Exercise.Fields.exerciseId.name(), "NewValue");
-        exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
-        ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.put(Exercise.Fields.type.name(), Exercise.Type.POWERCLEAN.name());
-        exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
-        ObjectNode exercisesNode = mapper.createObjectNode();
-        exercisesNode.replace("1e", exerciseNode1);
-        exercisesNode.replace("2e", exerciseNode2);
-        ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exercisesNode);
-
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
-
-        String result = controller.update(mockRequest, mockResponse);
-
-        /*
-        assertEquals("A2", repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getSetId());
-        assertEquals("1e", repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getExerciseId());
-        assertEquals(22, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
-
-         */
-
-    }
 
     @Test
     public void ifNoIdFoundNothingUpdated() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        mockRepository.save(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
         setNode1.put(Set.Fields.repetitions.name(), "11");
@@ -537,23 +528,23 @@ public class ControllerJPARepositoryTest {
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
 
-        /*
+        assertEquals(Exercise.Type.SQUAT, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
+        assertEquals(Exercise.Type.BENCHPRESS, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
+        assertEquals(5, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
+        assertEquals(5, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
+        assertEquals(60, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
+        assertEquals(55, mockRepository.get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getSets().get("B").getWeight(), DELTA);
 
-        assertEquals(Exercise.Type.SQUAT, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
-        assertEquals(Exercise.Type.BENCHPRESS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
-        assertEquals(5, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
-        assertEquals(5, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
-        assertEquals(60, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
-        assertEquals(55, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getSets().get("B").getWeight(), DELTA);
-*/
     }
 
     @Test
     public void updateComputedValuesGenerateIllegalArgumentException() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode);
@@ -561,14 +552,16 @@ public class ControllerJPARepositoryTest {
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
-    @Test
+    @Test // Fixat
     public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
@@ -580,57 +573,41 @@ public class ControllerJPARepositoryTest {
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
-
-    }
-
-    @Test
-    public void updateWithNoCorrectWorkoutId() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
-        ArrayNode exerciseArray = mapper.createArrayNode();
-        ObjectNode exerciseNode = mapper.createObjectNode();
-        ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
-        exerciseArray.add(exerciseNode);
-        ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exerciseArray);
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("unknown-id");
-        argCaptor = ArgumentCaptor.forClass(Integer.class);
-        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
-        assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
-
 
     }
 
 
     @Test(expected = NoSuchElementException.class)
     public void whenDeletedItemIsRemovedFromStorageTryToGetThrowsNoSuchElementException() {
-        repository.save(mockWorkout3);
-        Workout beforeResult = repository.get(mockWorkOutId);
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
+        Workout beforeResult = mockRepository.get(mockWorkOutId);
         assertNotNull(beforeResult);
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkOutId);
         String result = controller.delete(mockRequest, mockResponse);
-        repository.get(mockWorkOutId);
+        when(mockRepository.get(anyString())).thenThrow(NoSuchElementException.class);
+        mockRepository.get(mockWorkOutId);
         fail();
     }
 
     @Test
     public void deleteWhenNoMatchGenerates404() {
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("a-workoutId-noOne-has");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        doThrow(NoSuchElementException.class).when(mockRepository).delete(anyString());
         String result = controller.delete(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
     }
 
     @Test
     public void deleteWhenNoWorkOutIdFieldExistsGeneratesBadRequest() {
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(null);
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
@@ -641,6 +618,7 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void findByUserId() {
+        when(mockRepository.findByUserId(anyString())).thenReturn(Arrays.asList(mockWorkout, mockWorkout));
         assertEquals(2, controller.findByUserId("mockUserId").size());
     }
 
@@ -652,11 +630,13 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void size() {
+        when(mockRepository.size()).thenReturn(4);
         assertEquals(4, controller.size());
     }
 
     @Test
     public void totalLiftedWeightByUser() {
+        when(mockRepository.totalLiftedWeightByUser(anyString())).thenReturn(3990d);
         assertEquals(3990, controller.totalLiftedWeightByUser("mockUserId"), DELTA);
     }
 
@@ -668,6 +648,7 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void heaviestLiftByUser() {
+        when(mockRepository.heaviestLiftByUser(anyString())).thenReturn(60d);
         assertEquals(60, controller.heaviestLiftByUser("mockUserId"), DELTA);
     }
 
@@ -678,6 +659,7 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void totalLiftsByUser() {
+        when(mockRepository.totalLiftsByUser(anyString())).thenReturn(76);
         assertEquals(76, controller.totalLiftsByUser("mockUserId"));
     }
 

@@ -7,11 +7,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.Exercise;
 import model.ImmutableFields;
+import model.User;
 import model.Workout;
 import model.template.TemplateExercise;
 import model.template.TemplateSet;
 import model.template.TemplateUser;
 import model.template.TemplateWorkout;
+import org.eclipse.jetty.server.Authentication;
 import repository.Repository;
 import spark.Request;
 import spark.Response;
@@ -214,7 +216,7 @@ public class Controller implements Initialisable {
     }
 
     public String update(Request request, Response response) throws JsonProcessingException {
-     //   try {
+        try {
             String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             Workout oldWorkout = repository.get(workoutId);
             TemplateWorkout templateWorkout = mapToTemplate(oldWorkout);
@@ -227,14 +229,14 @@ public class Controller implements Initialisable {
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
             return JsonView.workoutAsJson(result, mapper);
-     /*  } catch (JsonProcessingException | IllegalArgumentException jpe) {
+        } catch (JsonProcessingException | IllegalArgumentException jpe) {
             response.status(HTTP_BAD_REQUEST);
             return jpe.toString();
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
         }
-*/
+
 
     }
 
