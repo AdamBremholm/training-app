@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
+import model.Set;
+import org.hibernate.jdbc.Work;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
@@ -14,18 +16,13 @@ import repository.MapRepository;
 import repository.Repository;
 import spark.Request;
 import spark.Response;
-import static org.mockito.ArgumentMatchers.*;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 
@@ -35,10 +32,8 @@ public class ControllerJPARepositoryTest {
     private ObjectMapper mapper;
     private Workout mockWorkout3;
     private static final double DELTA = 0.001;
-    JsonNode mockWorkoutJsonNode;
+    private JsonNode mockWorkoutJsonNode;
     private String mockWorkOutId;
-    private User mockUser4;
-    Repository repository;
 
     @Mock
     Request mockRequest;
@@ -53,9 +48,6 @@ public class ControllerJPARepositoryTest {
     ArgumentCaptor argCaptor;
 
     @Mock
-    User mockUser;
-
-    @Mock
     Workout mockWorkout;
 
 
@@ -68,8 +60,7 @@ public class ControllerJPARepositoryTest {
         controller = Controller.getInstance(mockRepository, mapper);
 
 
-
-        mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
+        User mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
                 .withUserId("mockUserId4")
                 .withHeight(110)
                 .withWeight(50)
@@ -144,7 +135,7 @@ public class ControllerJPARepositoryTest {
     @Test
     public void list() {
         String result = null;
-        Mockito.when(mockRepository.list()).thenReturn(Arrays.asList(mockWorkout3));
+        Mockito.when(mockRepository.list()).thenReturn(Collections.singletonList(mockWorkout3));
         try {
             result = controller.list(mockRequest, mockResponse);
         } catch (JsonProcessingException e) {
@@ -165,7 +156,7 @@ public class ControllerJPARepositoryTest {
     public void saveCreatesWorkOutIdIfNoneProvided() {
 
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        Mockito.when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        Mockito.when(mockRepository.save(any())).thenReturn(mockWorkout3);
         String res = controller.save(mockRequest, mockResponse);
         System.out.println(res);
         assertTrue(res.contains(Workout.Fields.workoutId.name()));
@@ -178,7 +169,7 @@ public class ControllerJPARepositoryTest {
 
         ((ObjectNode) mockWorkoutJsonNode.get(Workout.Fields.user.name())).remove(User.Fields.userId.name());
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        Mockito.when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        Mockito.when(mockRepository.save(any())).thenReturn(mockWorkout3);
         String res = controller.save(mockRequest, mockResponse);
         assertTrue(res.contains(User.Fields.userId.name()));
         verify(mockRequest).body();
@@ -197,9 +188,9 @@ public class ControllerJPARepositoryTest {
     @Test(expected = IllegalArgumentException.class)
     public void saveWithExistingUserIdThrowsException() {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
-        Mockito.when(mockRepository.save(((Workout)any()))).thenReturn(mockWorkout3);
+        Mockito.when(mockRepository.save(any())).thenReturn(mockWorkout3);
         controller.save(mockRequest, mockResponse);
-        Mockito.when(mockRepository.save(((Workout)any()))).thenThrow(IllegalArgumentException.class);
+        Mockito.when(mockRepository.save(any())).thenThrow(IllegalArgumentException.class);
         controller.save(mockRequest, mockResponse);
         fail();
     }
@@ -210,7 +201,7 @@ public class ControllerJPARepositoryTest {
         controller.save(mockRequest, mockResponse);
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkOutId);
         Mockito.when(mockRepository.get(mockWorkOutId)).thenReturn(mockWorkout3);
-        String res = null;
+        String res;
         res = controller.get(mockRequest, mockResponse);
         assertNotNull(res);
     }
@@ -253,7 +244,7 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void updateWorkoutIdThrowsIllegalArgumentException() throws JsonProcessingException {
-       when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+       when(mockRepository.save(any())).thenReturn(mockWorkout3);
         mockRepository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
         jsonNode.put(Workout.Fields.workoutId.name(), "1234");
@@ -268,7 +259,7 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void updateStartTime() throws JsonProcessingException {
-        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.save(any())).thenReturn(mockWorkout3);
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         mockRepository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
@@ -292,8 +283,9 @@ public class ControllerJPARepositoryTest {
                 .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
                 .build();
 
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
+        when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
+        System.out.println(result);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
         assertEquals("2019-10-03 10:15:30",jsonNodeRes.get(Workout.Fields.startTime.name()).asText() );
     }
@@ -347,7 +339,7 @@ public class ControllerJPARepositoryTest {
 
         mockRepository.save(mockWorkout3);
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
+        when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         ObjectNode userJsonNode = mapper.createObjectNode();
         userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
@@ -402,7 +394,7 @@ public class ControllerJPARepositoryTest {
         workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
+        when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
         assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
@@ -412,7 +404,7 @@ public class ControllerJPARepositoryTest {
     @Test
     public void updateMultipleValuesInNestedExercisesInWorkout() throws JsonProcessingException {
 
-        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.save(any())).thenReturn(mockWorkout3);
         mockRepository.save(mockWorkout3);
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
 
@@ -473,7 +465,7 @@ public class ControllerJPARepositoryTest {
                 .build();
 
 
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
+        when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
 
         when(mockRepository.get(anyString())).thenReturn(resultWorkout);
@@ -496,7 +488,7 @@ public class ControllerJPARepositoryTest {
     @Test
     public void ifNoIdFoundNothingUpdated() throws JsonProcessingException {
 
-        when(mockRepository.save((Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.save(any())).thenReturn(mockWorkout3);
         mockRepository.save(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
@@ -528,7 +520,7 @@ public class ControllerJPARepositoryTest {
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), any())).thenReturn(mockWorkout3);
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
 
@@ -553,7 +545,7 @@ public class ControllerJPARepositoryTest {
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), any())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
@@ -574,7 +566,7 @@ public class ControllerJPARepositoryTest {
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
-        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(mockWorkout3);
+        when(mockRepository.update(anyString(), any())).thenReturn(mockWorkout3);
         String result = controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
 
@@ -669,7 +661,6 @@ public class ControllerJPARepositoryTest {
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {
-        ;
         return mapper.convertValue(workout, JsonNode.class);
     }
 

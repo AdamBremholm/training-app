@@ -10,7 +10,7 @@ import static spark.Spark.*;
 
 
 
-public class TrainingServer {
+class TrainingServer {
 
 
     public static void main(String[] args) {

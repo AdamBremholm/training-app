@@ -1,6 +1,7 @@
 package model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -10,17 +11,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 @JsonDeserialize(builder = Exercise.Builder.class)
 public class Exercise implements Reflectable {
 
-    private String exerciseId;
+    private final String exerciseId;
     private final Type type;
     private final Map<String, Set> sets;
     private final Set heaviestSet;
     private final int totalRepetitions;
 
 
-
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonPOJOBuilder
     public static class Builder {
 
@@ -28,8 +30,6 @@ public class Exercise implements Reflectable {
         private final Map<String, Set> sets;
 
         private String exerciseId = null;
-        private int totalRepetitions = 0;
-        private Set heaviestSet = null;
 
         @JsonCreator
         public Builder(@JsonProperty("type") Type type, @JsonProperty("sets") Map<String, Set> sets) {
@@ -43,16 +43,6 @@ public class Exercise implements Reflectable {
             return this;
         }
 
-        public Builder withTotalRepetitions(int totalRepetitions) {
-            this.totalRepetitions = totalRepetitions;
-            return this;
-        }
-
-        public Builder withHeaviestSet(Set heaviestSet) {
-            this.heaviestSet = heaviestSet;
-            return this;
-        }
-
 
         public Exercise build(){
             return new Exercise(this);
@@ -60,7 +50,7 @@ public class Exercise implements Reflectable {
 
     }
 
-    public Exercise(Builder builder) {
+    private Exercise(Builder builder) {
         this.exerciseId = generateRandomUUIDifNotProvided(builder);
         this.type = builder.type;
         this.sets = builder.sets;
@@ -135,7 +125,6 @@ public class Exercise implements Reflectable {
 
 
 
-    @Override
     public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
         Field[] fields = reflectable.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
@@ -155,21 +144,21 @@ public class Exercise implements Reflectable {
         return actualFieldNames.containsAll(enumList);
     }
 
-    public static enum Type {
+    public enum Type {
         SQUAT,
         BENCHPRESS,
         DEADLIFT,
         POWERCLEAN,
         PRESS,
-        CHINS;
+        CHINS
 
     }
 
-    public static enum Fields {
+    public enum Fields {
                 sets,
                 set,
                 exerciseId,
-                type;
+                type
     }
 
 

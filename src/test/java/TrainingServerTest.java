@@ -24,7 +24,6 @@ public class TrainingServerTest {
     private final String BASE_URL = "http://localhost:4567/api";
     private static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
-    private Workout mockWorkout3;
     private JsonNode mockWorkoutJsonNode;
     private ObjectMapper mapper;
 
@@ -79,7 +78,7 @@ public class TrainingServerTest {
         exercisesA.put(benchPress.getExerciseId(), benchPress);
         exercisesA.put(deadLift.getExerciseId(), deadLift);
 
-        mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
+        Workout mockWorkout3 = new Workout.Builder(mockUser4, exercisesA)
                 .withWorkoutId("mockId1")
                 .withStartTime(Instant.parse("2019-10-04T10:15:30Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
@@ -89,7 +88,7 @@ public class TrainingServerTest {
 
     }
 
-    private JsonNode workoutToJsonNode(Workout workout){ ;
+    private JsonNode workoutToJsonNode(Workout workout){
         return mapper.convertValue(workout, JsonNode.class);
     }
 
@@ -104,6 +103,7 @@ public class TrainingServerTest {
         Call call = client.newCall(request);
         Response response = call.execute();
         ResponseBody responseBody = response.body();
+        assert responseBody != null;
         String res = responseBody.string();
         assertNotNull(res);
         assertEquals(200, response.code());
@@ -123,6 +123,7 @@ public class TrainingServerTest {
         Call call = client.newCall(request);
         Response response = call.execute();
         ResponseBody responseBody = response.body();
+        assert responseBody != null;
         String res = responseBody.string();
         assertNotNull(res);
         assertEquals(201, response.code());
@@ -139,6 +140,7 @@ public class TrainingServerTest {
         Call call = client.newCall(request);
         Response response = call.execute();
         ResponseBody responseBody = response.body();
+        assert responseBody != null;
         String res = responseBody.string();
         assertNotNull(res);
         assertEquals(200, response.code());
@@ -185,6 +187,7 @@ public class TrainingServerTest {
         Call call = client.newCall(request);
         Response response = call.execute();
         ResponseBody responseBody = response.body();
+        assert responseBody != null;
         String res = responseBody.string();
         System.out.println(res);
         assertEquals(200, response.code());
@@ -203,6 +206,7 @@ public class TrainingServerTest {
         Call call = client.newCall(request);
         Response response = call.execute();
         ResponseBody responseBody = response.body();
+        assert responseBody != null;
         String res = responseBody.string();
         assertEquals(204, response.code());
 

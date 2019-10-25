@@ -61,7 +61,7 @@ public class User implements Reflectable {
 
     }
 
-    public User(Builder builder) {
+    private User(Builder builder) {
         this.userId = generateRandomUUIDifNotProvided(builder);
         this.username = builder.username;
         this.email = builder.email;
@@ -124,7 +124,6 @@ public class User implements Reflectable {
                 '}';
     }
 
-    @Override
     public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
         Field[] fields = reflectable.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
@@ -151,7 +150,7 @@ public class User implements Reflectable {
         password,
         height,
         weight,
-        username;
+        username
 
     }
 }

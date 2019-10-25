@@ -2,6 +2,7 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -26,6 +27,7 @@ public class Workout implements Reflectable {
     private final int totalRepetitions;
 
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     @JsonPOJOBuilder
     public static class Builder {
         private final User user;
@@ -35,8 +37,6 @@ public class Workout implements Reflectable {
         private Instant startTime = null;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
         private Instant endTime = null;
-        private Exercise heaviestExercise = null;
-        private int totalRepetitions = 0;
         private String workoutId = null;
 
         @JsonCreator
@@ -54,14 +54,6 @@ public class Workout implements Reflectable {
             return this;
         }
 
-        public Builder withHeaviestExercise(Exercise exercise){
-            this.heaviestExercise = exercise;
-            return this;
-        }
-        public Builder withTotalRepetitions(int totalRepetitions){
-            this.totalRepetitions = totalRepetitions;
-            return this;
-        }
 
         public Builder withWorkoutId(String workoutId){
             this.workoutId = workoutId;
@@ -171,7 +163,6 @@ public class Workout implements Reflectable {
                 '}';
     }
 
-    @Override
     public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
         Field[] fields = reflectable.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
@@ -192,7 +183,7 @@ public class Workout implements Reflectable {
         return actualFieldNames.containsAll(enumList);
     }
 
-    public static enum Fields {
+    public enum Fields {
 
         exercises,
         user,

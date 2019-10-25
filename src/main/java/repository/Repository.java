@@ -1,7 +1,6 @@
 package repository;
 
 import model.Workout;
-import model.template.TemplateWorkout;
 
 import java.util.List;
 

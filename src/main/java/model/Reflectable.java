@@ -7,7 +7,7 @@ import java.util.List;
 
 
 
-public interface Reflectable {
+interface Reflectable {
 
     static List<String> getFieldNames(Field[] fields) {
         List<String> fieldNames = new ArrayList<>();
@@ -16,7 +16,5 @@ public interface Reflectable {
         return fieldNames;
     }
 
-
-     boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields);
 
 }

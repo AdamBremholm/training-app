@@ -4,11 +4,9 @@ import java.net.URL;
 
 public class ServerSparkStarter extends SparkStarter {
 
-    TrainingServer trainingServer;
     private static ServerSparkStarter starter;
     private final String host;
     private final String heartBeatPath;
-    private final int serverPort = 4567;
 
     private ServerSparkStarter(String host, String heartBeatPath){
         this.host = host;
@@ -28,6 +26,7 @@ public class ServerSparkStarter extends SparkStarter {
     public boolean isRunning(){
 
         try{
+            int serverPort = 4567;
             HttpURLConnection con = (HttpURLConnection)new URL("http",host, serverPort, heartBeatPath).openConnection();
             return con.getResponseCode()==200;
         }catch(Exception e){

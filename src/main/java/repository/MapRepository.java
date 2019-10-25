@@ -4,7 +4,6 @@ package repository;
 import model.Exercise;
 import model.Set;
 import model.Workout;
-import model.template.TemplateWorkout;
 
 import java.util.*;
 import java.util.stream.Collectors;

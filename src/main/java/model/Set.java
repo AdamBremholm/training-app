@@ -49,7 +49,7 @@ public class Set implements Comparable<Set>, Reflectable {
 
     }
 
-    public Set(Builder builder) {
+    private Set(Builder builder) {
        this.setId = generateSetIdIfNotProvided(builder);
        this.repetitions = checkPositiveInteger(builder.repetitions);
        this.weight = checkPositiveDouble(builder.weight);
@@ -118,7 +118,6 @@ public class Set implements Comparable<Set>, Reflectable {
                 '}';
     }
 
-    @Override
     public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
         Field[] fields = reflectable.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
@@ -138,10 +137,10 @@ public class Set implements Comparable<Set>, Reflectable {
         return actualFieldNames.containsAll(enumList);
     }
 
-    public static enum Fields {
+    public enum Fields {
         setId,
         repetitions,
-        weight;
+        weight
     }
 
 }

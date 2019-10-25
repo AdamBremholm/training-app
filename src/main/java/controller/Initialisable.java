@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import model.*;
 import model.Set;
-import model.NoOverWriteMap;
 import repository.Repository;
 
 import java.time.Instant;
@@ -14,7 +13,7 @@ import java.util.*;
 
 public interface Initialisable {
 
-    static Controller populate(Controller controller)  {
+    static void populate(Controller controller)  {
 
         Repository repository = controller.getRepository();
 
@@ -42,8 +41,8 @@ public interface Initialisable {
         Set setB2 = new Set.Builder().withRepetitions(5).withWeight(55).build();
         Set setB3 = new Set.Builder().withRepetitions(5).withWeight(55).build();
         Set setC = new Set.Builder().withRepetitions(5).withWeight(60).build();
-        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
-        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();
+        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();
         Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setE2 = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setE3 = new Set.Builder().withRepetitions(5).withWeight(40).build();
@@ -115,8 +114,6 @@ public interface Initialisable {
         repository.save(mockWorkout2);
         repository.save(mockWorkout3);
         repository.save(mockWorkout4);
-
-        return controller;
 
     }
 

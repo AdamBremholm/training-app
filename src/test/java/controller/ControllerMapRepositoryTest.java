@@ -31,9 +31,8 @@ public class ControllerMapRepositoryTest {
     private ObjectMapper mapper;
     private Workout mockWorkout3;
     private static final double DELTA = 0.001;
-    JsonNode mockWorkoutJsonNode;
+    private JsonNode mockWorkoutJsonNode;
     private String mockWorkOutId;
-    private User mockUser4;
 
 
     @Before
@@ -46,7 +45,7 @@ public class ControllerMapRepositoryTest {
 
         MockitoAnnotations.initMocks(this);
 
-        mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
+        User mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
                 .withUserId("mockUserId4")
                 .withHeight(110)
                 .withWeight(50)
@@ -197,7 +196,7 @@ public class ControllerMapRepositoryTest {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
         Mockito.when(mockRequest.params("workoutId")).thenReturn(mockWorkOutId);
-        String res = null;
+        String res;
         res = controller.get(mockRequest, mockResponse);
         assertNotNull(res);
     }
@@ -207,7 +206,7 @@ public class ControllerMapRepositoryTest {
         Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
         Mockito.when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
-        String res = null;
+        String res;
         res = controller.get(mockRequest, mockResponse);
         assertEquals("java.util.NoSuchElementException", res);
     }
@@ -627,7 +626,7 @@ public class ControllerMapRepositoryTest {
         assertEquals(76, controller.totalLiftsByUser(null));
     }
 
-    private JsonNode workoutToJsonNode(Workout workout){ ;
+    private JsonNode workoutToJsonNode(Workout workout){
         return mapper.convertValue(workout, JsonNode.class);
     }
 

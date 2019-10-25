@@ -3,7 +3,6 @@ package model;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Map;
 
@@ -13,7 +12,6 @@ import static org.junit.Assert.assertTrue;
 public class ExerciseTest {
 
     private Set setA;
-    private Set setD;
     private Exercise exercise;
     private String exerciseId;
     private Exercise.Type type;
@@ -27,7 +25,7 @@ public class ExerciseTest {
         type = Exercise.Type.SQUAT;
         setA = new Set.Builder().withRepetitions(5).withWeight(65).build();
         Set setA2 = new Set.Builder().withRepetitions(5).withWeight(60).build();
-        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();
 
         sets1 = new NoOverWriteMap<>();
         sets1.put(setA.getSetId(), setA);

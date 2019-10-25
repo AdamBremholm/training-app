@@ -1,10 +1,6 @@
 package model.template;
 
 
-import model.Set;
-
-
-
 import java.util.Map;
 
 public class TemplateExercise {
@@ -58,12 +54,12 @@ public class TemplateExercise {
         this.totalRepetitions = totalRepetitions;
     }
 
-    public static enum  Type {
+    public enum  Type {
         SQUAT,
         BENCHPRESS,
         DEADLIFT,
         POWERCLEAN,
         PRESS,
-        CHINS;
+        CHINS
     }
 }

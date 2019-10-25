@@ -12,33 +12,26 @@ public class WorkoutTest {
 
     private Workout mockWorkout1;
     private Workout mockWorkout2;
-    private Workout mockWorkout3;
     private Workout mockWorkout4;
     private User mockUser1;
-    private User mockUser2;
-    private User mockUser3;
     private Map<String, Exercise> exercisesA;
     private Map<String, Exercise> exercisesB;
     private Exercise squats;
-    private Exercise benchPress;
-    private Exercise deadLift;
-    private Exercise powerClean;
-    private Exercise press;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
          mockUser1 = new User.Builder("mrMock", "mock@mockmail.com", "mr")
                 .withUserId("mockUserId")
                 .withHeight(180)
                 .withWeight(80)
                 .build();
-         mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
+        User mockUser2 = new User.Builder("mrsMcMock", "mrs@mockmail.com", "mrs")
                 .withUserId("mockUserId2")
                 .withHeight(165)
                 .withWeight(60)
                 .build();
-         mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
+        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
                 .withUserId("mockUserId3")
                 .withHeight(110)
                 .withWeight(50)
@@ -51,8 +44,8 @@ public class WorkoutTest {
         Set setB2 = new Set.Builder().withRepetitions(5).withWeight(55).build();
         Set setB3 = new Set.Builder().withRepetitions(5).withWeight(55).build();
         Set setC = new Set.Builder().withRepetitions(5).withWeight(60).build();
-        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();;
-        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();;
+        Set setD = new Set.Builder().withRepetitions(3).withWeight(40).build();
+        Set setD2 = new Set.Builder().withRepetitions(3).withWeight(40).build();
         Set setE = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setE2 = new Set.Builder().withRepetitions(5).withWeight(40).build();
         Set setE3 = new Set.Builder().withRepetitions(5).withWeight(40).build();
@@ -84,10 +77,10 @@ public class WorkoutTest {
 
 
          squats = new Exercise.Builder(Exercise.Type.SQUAT, sets1).build();
-         benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets2).build();
-         deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, sets3).build();
-         powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, sets4).build();
-         press = new Exercise.Builder(Exercise.Type.PRESS, sets5).build();
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets2).build();
+        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, sets3).build();
+        Exercise powerClean = new Exercise.Builder(Exercise.Type.POWERCLEAN, sets4).build();
+        Exercise press = new Exercise.Builder(Exercise.Type.PRESS, sets5).build();
 
 
         exercisesA = new HashMap<>();
@@ -110,7 +103,7 @@ public class WorkoutTest {
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
                 .build();
-         mockWorkout3 = new Workout.Builder(mockUser3, exercisesA)
+        Workout mockWorkout3 = new Workout.Builder(mockUser3, exercisesA)
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
                 .build();

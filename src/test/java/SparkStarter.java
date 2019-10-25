@@ -1,11 +1,11 @@
 import spark.Spark;
 
-public abstract class SparkStarter {
+abstract class SparkStarter {
 
-    protected int sparkPort = 4567;
+    private int sparkPort = 4567;
 
-    public abstract boolean isRunning();
-    public abstract void startServer();
+    protected abstract boolean isRunning();
+    protected abstract void startServer();
 
     public void startSparkAppIfNotRunning(int expectedPort){
 
@@ -60,36 +60,4 @@ public abstract class SparkStarter {
         System.out.println("Warning: Server might not have started");
     }
 
-    public void killServer(){
-
-        Spark.stop();
-        //Spark.halt();
-
-        // wait until server has stopped
-        int tries = 10;
-        while(tries>0) {
-
-            System.out.println("Checking if server has stopped");
-
-            if(isRunning()){
-                try {
-
-                    System.out.println("Spark threads " + Spark.activeThreadCount());
-                    Thread.sleep(1000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }else{
-                System.out.println("Server has stopped");
-                return;
-            }
-            tries --;
-        }
-
-        System.out.println("Server might not have stopped");
-    }
-
-    public int getPort() {
-        return sparkPort;
-    }
 }

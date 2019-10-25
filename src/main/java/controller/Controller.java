@@ -5,15 +5,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import model.Exercise;
 import model.ImmutableFields;
-import model.User;
 import model.Workout;
 import model.template.TemplateExercise;
 import model.template.TemplateSet;
 import model.template.TemplateUser;
 import model.template.TemplateWorkout;
-import org.eclipse.jetty.server.Authentication;
 import repository.Repository;
 import spark.Request;
 import spark.Response;
@@ -80,34 +77,23 @@ public class Controller implements Initialisable {
     private void updateTemplateExercises(Map<String, TemplateExercise> templateExercises, Map<String, TemplateExercise> requestExercises) {
 
 
-            requestExercises.forEach((exerciseId, requestExercise) -> {
+            requestExercises.forEach((exerciseId, requestExercise) -> findTemplateExerciseByExerciseId(exerciseId, templateExercises).ifPresent(targetExercise -> {
 
-               findTemplateExerciseByExerciseId(exerciseId, templateExercises).ifPresent(targetExercise -> {
+                 Optional.ofNullable(requestExercise).map(TemplateExercise::getType)
+                         .ifPresent(targetExercise::setType);
 
-                    Optional.ofNullable(requestExercise).map(TemplateExercise::getType)
-                            .ifPresent(targetExercise::setType);
+                Optional.ofNullable(requestExercise).map(TemplateExercise::getSets)
+                        .ifPresent(requestSets -> requestSets.forEach((setId, requestTemplateSet) -> findTemplateSetBySetId(setId, targetExercise.getSets())
+                                        .ifPresent(targetSet -> {
 
-                   Optional.ofNullable(requestExercise).map(TemplateExercise::getSets)
-                           .ifPresent(requestSets -> {
+                                            Optional.of(requestTemplateSet.getRepetitions())
+                                                    .filter(value -> value > 0).ifPresent(targetSet::setRepetitions);
 
-                               requestSets.forEach((setId, requestTemplateSet) -> {
+                                            Optional.of(requestTemplateSet.getWeight())
+                                                    .filter(value -> value > 0).ifPresent(targetSet::setWeight);
 
-                                   findTemplateSetBySetId(setId, targetExercise.getSets())
-                                           .ifPresent(targetSet -> {
-
-                                               Optional.of(requestTemplateSet.getRepetitions())
-                                                       .filter(value -> value > 0).ifPresent(targetSet::setRepetitions);
-
-                                               Optional.of(requestTemplateSet.getWeight())
-                                                       .filter(value -> value > 0).ifPresent(targetSet::setWeight);
-
-                                           });
-                               });
-
-                           });
-                });
-
-            });
+                                        })));
+             }));
             }
 
 
@@ -215,7 +201,7 @@ public class Controller implements Initialisable {
 
     }
 
-    public String update(Request request, Response response) throws JsonProcessingException {
+    public String update(Request request, Response response) {
         try {
             String workoutId = Optional.ofNullable(request.params(Workout.Fields.workoutId.toString())).orElseThrow(IllegalArgumentException::new);
             Workout oldWorkout = repository.get(workoutId);

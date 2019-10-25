@@ -5,5 +5,5 @@ public enum ImmutableFields {
     heaviestSet,
     totalRepetitions,
     heaviestExercise,
-    workoutId;
+    workoutId
 }
