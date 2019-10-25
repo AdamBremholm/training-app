@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
+import static model.Workout.Fields.*;
+import static model.Exercise.Type.*;
+
 
 import model.Set;
 import org.junit.Before;
@@ -75,9 +78,9 @@ public class ControllerMapRepositoryTest {
 
 
 
-        Exercise squats = new Exercise.Builder(Exercise.Type.SQUAT, sets1).withExerciseId("1e").build();
-        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets2).withExerciseId("2e").build();
-        Exercise deadLift = new Exercise.Builder(Exercise.Type.DEADLIFT, sets3).withExerciseId("3e").build();
+        Exercise squats = new Exercise.Builder(SQUAT, sets1).withExerciseId("1e").build();
+        Exercise benchPress = new Exercise.Builder(BENCHPRESS, sets2).withExerciseId("2e").build();
+        Exercise deadLift = new Exercise.Builder(DEADLIFT, sets3).withExerciseId("3e").build();
 
         Map<String, Exercise> exercisesA = new HashMap<>();
         exercisesA.put(squats.getExerciseId(), squats);
@@ -142,7 +145,7 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void saveConvertsJsonBodyToObjectAndInputsIntoRepository() {
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+       when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
         verify(mockRequest).body();
         assertNotNull(repository.get(mockWorkOutId));
@@ -151,11 +154,11 @@ public class ControllerMapRepositoryTest {
     @Test
     public void saveCreatesWorkOutIdIfNoneProvided() {
 
-        ((ObjectNode)mockWorkoutJsonNode).remove(Workout.Fields.workoutId.name());
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        ((ObjectNode)mockWorkoutJsonNode).remove(workoutId.name());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest, mockResponse);
-        assertTrue(res.contains(Workout.Fields.workoutId.name()));
+        assertTrue(res.contains(workoutId.name()));
         assertEquals(5, repository.size());
 
     }
@@ -163,8 +166,8 @@ public class ControllerMapRepositoryTest {
     @Test
     public void saveCreatesUserIdIfNoneProvided() {
 
-        ((ObjectNode)mockWorkoutJsonNode.get(Workout.Fields.user.name())).remove(User.Fields.userId.name());
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        ((ObjectNode)mockWorkoutJsonNode.get(user.name())).remove(User.Fields.userId.name());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest, mockResponse);
         assertTrue(res.contains("userId"));
@@ -175,16 +178,16 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void saveThrowsExceptionIfIncorrectJsonIsInputted()  {
-        Mockito.when(mockRequest.body()).thenReturn("");
+        when(mockRequest.body()).thenReturn("");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String res = controller.save(mockRequest, mockResponse);
+        controller.save(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void saveWithExistingUserIdThrowsException() {
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         controller.save(mockRequest, mockResponse);
         controller.save(mockRequest, mockResponse);
@@ -193,9 +196,9 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void getRetrievesObjectByWorkOutId()  {
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
-        Mockito.when(mockRequest.params("workoutId")).thenReturn(mockWorkOutId);
+        when(mockRequest.params("workoutId")).thenReturn(mockWorkOutId);
         String res;
         res = controller.get(mockRequest, mockResponse);
         assertNotNull(res);
@@ -203,9 +206,9 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void getThrowsNoSuchElementExceptionIfNotFound()  {
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
-        Mockito.when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
+        when(mockRequest.params("workoutId")).thenReturn("non-existent-workout-id");
         String res;
         res = controller.get(mockRequest, mockResponse);
         assertEquals("java.util.NoSuchElementException", res);
@@ -213,12 +216,12 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void getThrowsIllegalArgumentExceptionIfNoWorkoutIdIsProvidedInUrl()  {
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
-        Mockito.when(mockRequest.params("noCorrectWorkoutIdField")).thenReturn("non-existent-workout-id");
+        when(mockRequest.params("noCorrectWorkoutIdField")).thenReturn("non-existent-workout-id");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String res = controller.get(mockRequest, mockResponse);
+        controller.get(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
@@ -226,10 +229,10 @@ public class ControllerMapRepositoryTest {
     public void getThrowsJsonProcessingErrorWhenItCannotMapToJson()  {
 
         controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), mapper);
-        Mockito.when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
+        when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("non-existent-workout-id");
+        when(mockRequest.params(workoutId.name())).thenReturn("non-existent-workout-id");
         mapper = null;
         controller.get(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
@@ -237,15 +240,15 @@ public class ControllerMapRepositoryTest {
 
 
     @Test
-    public void updateWorkoutIdThrowsIllegalArgumentException() throws JsonProcessingException {
+    public void updateWorkoutIdThrowsIllegalArgumentException() {
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Workout.Fields.workoutId.name(), "1234");
-        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        jsonNode.put(workoutId.name(), "1234");
+        when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
 
     }
@@ -255,12 +258,12 @@ public class ControllerMapRepositoryTest {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Workout.Fields.startTime.name(), "2019-10-03 10:15:30");
-        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        jsonNode.put(startTime.name(), "2019-10-03 10:15:30");
+        when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(Workout.Fields.startTime.name()).asText());
+        assertEquals("2019-10-03 10:15:30", jsonNodeRes.get(startTime.name()).asText());
     }
 
     @Test
@@ -268,39 +271,39 @@ public class ControllerMapRepositoryTest {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Workout.Fields.endTime.name(), "2019-10-13 10:15:30");
-        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        jsonNode.put(endTime.name(), "2019-10-13 10:15:30");
+        when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(Workout.Fields.endTime.name()).asText());
+        assertEquals("2019-10-13 10:15:30", jsonNodeRes.get(endTime.name()).asText());
     }
 
     @Test
-    public void updateEndTimeCantBeBeforeStartTime() throws JsonProcessingException {
+    public void updateEndTimeCantBeBeforeStartTime() {
 
         repository.save(mockWorkout3);
         ObjectNode jsonNode = mapper.createObjectNode();
-        jsonNode.put(Workout.Fields.endTime.name(), "2017-10-13 10:15:30");
-        Mockito.when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        jsonNode.put(endTime.name(), "2017-10-13 10:15:30");
+        when(mockRequest.body()).thenReturn(jsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
 
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateNonExistingFieldInRootObjectThrowsException() throws JsonProcessingException {
+    public void updateNonExistingFieldInRootObjectThrowsException() {
 
         repository.save(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("non-existing-field", "28" );
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         Mockito.doThrow(IllegalArgumentException.class).when(mockResponse).status(HTTP_BAD_REQUEST);
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         fail();
     }
 
@@ -311,22 +314,22 @@ public class ControllerMapRepositoryTest {
         ObjectNode userJsonNode = mapper.createObjectNode();
         userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        workoutJsonNode.replace(user.name(), userJsonNode);
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateUserObjectInWorkoutUnknownFieldNameInRequestThrowsException() throws JsonProcessingException {
+    public void updateUserObjectInWorkoutUnknownFieldNameInRequestThrowsException() {
 
         repository.save(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("johnny", "gurkan@gmail.com");
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         Mockito.doThrow(IllegalArgumentException.class).when(mockResponse).status(HTTP_BAD_REQUEST);
         controller.update(mockRequest, mockResponse);
     }
@@ -340,17 +343,17 @@ public class ControllerMapRepositoryTest {
         userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         userJsonNode.put(User.Fields.weight.name(), "60.53");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        workoutJsonNode.replace(user.name(), userJsonNode);
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
-        assertEquals("60.53", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.weight.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("60.53", jsonNodeRes.get(user.name()).get(User.Fields.weight.name()).asText());
     }
 
     @Test
-    public void updateMultipleValuesInNestedExercisesInWorkout() throws JsonProcessingException {
+    public void updateMultipleValuesInNestedExercisesInWorkout() {
 
         repository.save(mockWorkout3);
 
@@ -369,23 +372,23 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("B", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), Exercise.Type.CHINS.name());
+        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
         exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.put(Exercise.Fields.type.name(), Exercise.Type.POWERCLEAN.name());
+        exerciseNode2.put(Exercise.Fields.type.name(), POWERCLEAN.name());
         exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
         ObjectNode exercisesNode = mapper.createObjectNode();
         exercisesNode.replace("1e", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exercisesNode);
+        workoutJsonNode.replace(exercises.name(), exercisesNode);
 
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
         String result = controller.update(mockRequest, mockResponse);
-        assertEquals(Exercise.Type.CHINS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
-        assertEquals(Exercise.Type.POWERCLEAN, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
+        assertEquals(CHINS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
+        assertEquals(POWERCLEAN, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
         assertEquals(11, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
         assertEquals(22, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
         assertEquals(33, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
@@ -394,12 +397,12 @@ public class ControllerMapRepositoryTest {
         assertTrue(result.contains("22"));
         assertTrue(result.contains("33"));
         assertTrue(result.contains("44"));
-        assertTrue(result.contains(Exercise.Type.CHINS.name()));
-        assertTrue(result.contains(Exercise.Type.POWERCLEAN.name()));
+        assertTrue(result.contains(CHINS.name()));
+        assertTrue(result.contains(POWERCLEAN.name()));
     }
 
     @Test
-    public void newSetIdAndExerciseIdAreIgnored() throws JsonProcessingException {
+    public void newSetIdAndExerciseIdAreIgnored() {
 
         repository.save(mockWorkout3);
 
@@ -419,22 +422,22 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("B", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), Exercise.Type.CHINS.name());
+        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
         exerciseNode1.put(Exercise.Fields.exerciseId.name(), "NewValue");
         exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.put(Exercise.Fields.type.name(), Exercise.Type.POWERCLEAN.name());
+        exerciseNode2.put(Exercise.Fields.type.name(), POWERCLEAN.name());
         exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
         ObjectNode exercisesNode = mapper.createObjectNode();
         exercisesNode.replace("1e", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exercisesNode);
+        workoutJsonNode.replace(exercises.name(), exercisesNode);
 
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
 
         assertEquals("A2", repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getSetId());
         assertEquals("1e", repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getExerciseId());
@@ -443,7 +446,7 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void ifNoIdFoundNothingUpdated() throws JsonProcessingException {
+    public void ifNoIdFoundNothingUpdated() {
 
         repository.save(mockWorkout3);
 
@@ -462,7 +465,7 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("WrongId", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), Exercise.Type.CHINS.name());
+        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
         exerciseNode1.put(Exercise.Fields.exerciseId.name(), "NewValue");
         exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
@@ -471,16 +474,16 @@ public class ControllerMapRepositoryTest {
         exercisesNode.replace("WrongId", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exercisesNode);
+        workoutJsonNode.replace(exercises.name(), exercisesNode);
 
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
 
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
 
 
-        assertEquals(Exercise.Type.SQUAT, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
-        assertEquals(Exercise.Type.BENCHPRESS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
+        assertEquals(SQUAT, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getType());
+        assertEquals(BENCHPRESS, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getType());
         assertEquals(5, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A").getRepetitions());
         assertEquals(5, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
         assertEquals(60, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
@@ -489,56 +492,56 @@ public class ControllerMapRepositoryTest {
     }
 
     @Test
-    public void updateComputedValuesGenerateIllegalArgumentException() throws JsonProcessingException {
+    public void updateComputedValuesGenerateIllegalArgumentException() {
 
         repository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode );
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        workoutJsonNode.replace(heaviestExercise.name(), exerciseNode );
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test
-    public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() throws JsonProcessingException {
+    public void updateComputedValuesInNestedObjectsGenerateIllegalArgumentException() {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exerciseArray );
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        workoutJsonNode.replace(exercises.name(), exerciseArray );
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
 
     }
 
     @Test
-    public void updateWithNoCorrectWorkoutId() throws JsonProcessingException {
+    public void updateWithNoCorrectWorkoutId() {
 
         repository.save(mockWorkout3);
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(Workout.Fields.exercises.name(), exerciseArray );
-        Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("unknown-id");
+        workoutJsonNode.replace(exercises.name(), exerciseArray );
+        when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
+        when(mockRequest.params(workoutId.name())).thenReturn("unknown-id");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.update(mockRequest, mockResponse);
+        controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
 
 
@@ -551,8 +554,8 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
         Workout beforeResult = repository.get(mockWorkOutId);
         assertNotNull(beforeResult);
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkOutId);
-        String result = controller.delete(mockRequest, mockResponse);
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkOutId);
+        controller.delete(mockRequest, mockResponse);
         repository.get(mockWorkOutId);
         fail();
     }
@@ -560,20 +563,20 @@ public class ControllerMapRepositoryTest {
     @Test
     public void deleteWhenNoMatchGenerates404(){
         repository.save(mockWorkout3);
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn("a-workoutId-noOne-has");
+        when(mockRequest.params(workoutId.name())).thenReturn("a-workoutId-noOne-has");
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.delete(mockRequest, mockResponse);
+        controller.delete(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
     }
 
     @Test
     public void deleteWhenNoWorkOutIdFieldExistsGeneratesBadRequest(){
         repository.save(mockWorkout3);
-        Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(null);
+        when(mockRequest.params(workoutId.name())).thenReturn(null);
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
-        String result = controller.delete(mockRequest, mockResponse);
+        controller.delete(mockRequest, mockResponse);
         assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 

@@ -32,7 +32,7 @@ public class TrainingServerTest {
     public static void ensureAppIsRunning(){
         ServerSparkStarter.
                 get("localhost", "/heartbeat" ).
-                startSparkAppIfNotRunning(4567);
+                startSparkAppIfNotRunning();
     }
 
     @Before
@@ -207,7 +207,6 @@ public class TrainingServerTest {
         Response response = call.execute();
         ResponseBody responseBody = response.body();
         assert responseBody != null;
-        String res = responseBody.string();
         assertEquals(204, response.code());
 
     }

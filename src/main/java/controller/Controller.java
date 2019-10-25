@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.ImmutableFields;
+import model.User;
 import model.Workout;
 import model.template.TemplateExercise;
 import model.template.TemplateSet;
@@ -68,8 +69,9 @@ public class Controller implements Initialisable {
         optionalRequestWorkout.map(TemplateWorkout::getStartTime).ifPresent(templateWorkout::setStartTime);
         optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent((requestExercises)-> updateTemplateExercises(templateWorkout.getExercises(), requestExercises));
 
+        if(Optional.ofNullable(templateWorkout.getUser()).isPresent() && optionalRequestWorkout.map(TemplateWorkout::getUser).isPresent())
+         updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
 
-        updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
         validateTemplateWorkout(templateWorkout);
         return templateWorkout;
     }
@@ -162,6 +164,13 @@ public class Controller implements Initialisable {
         return mapper.readTree(jsonString);
     }
 
+    @SuppressWarnings("SameReturnValue")
+    public String heartBeat(Request request, Response response) {
+        response.status(200);
+        response.type(APPLICATION_JSON);
+        return "heartbeat";
+    }
+
 
     public String list(Request request, Response response) throws JsonProcessingException {
         response.status(200);
@@ -246,7 +255,7 @@ public class Controller implements Initialisable {
 
 
     public List<Workout> findByUserId(String userId) {
-       return repository.findByUserId(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
+        return repository.findByUserId(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
@@ -255,17 +264,29 @@ public class Controller implements Initialisable {
     }
 
 
-    public double totalLiftedWeightByUser(String userId) {
-        return repository.totalLiftedWeightByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
+    public double totalLiftedWeightByUser(Request request, Response response) {
+        try {
+            String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
+            String presentUserId = Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new);
+            response.status(HTTP_OK);
+            response.type(APPLICATION_JSON);
+            return repository.totalLiftedWeightByUser();
+
+        } catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
+
+
     }
 
 
-    public double heaviestLiftByUser(String userId) {
+    public double heaviestLiftByUser(Request request, Response response) {
        return repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
-    public int totalLiftsByUser(String userId) {
+    public int totalLiftsByUser(Request request, Response response) {
         return repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 }

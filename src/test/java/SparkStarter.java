@@ -1,23 +1,16 @@
-import spark.Spark;
-
 abstract class SparkStarter {
-
-    private int sparkPort = 4567;
 
     protected abstract boolean isRunning();
     protected abstract void startServer();
 
-    public void startSparkAppIfNotRunning(int expectedPort){
-
-
-        sparkPort = expectedPort;
+    public void startSparkAppIfNotRunning(){
 
 
         try {
 
             System.out.println("Checking if running for integration tests");
 
-            if(!isRunning()) {
+            if(isRunning()) {
 
                 System.out.println("Not running - starting");
 
@@ -31,12 +24,6 @@ abstract class SparkStarter {
             System.out.println("TODO: Investigate - " + e.getMessage());
         }
 
-        try{
-            sparkPort = Spark.port();
-        }catch(Exception e){
-            System.out.println("Warning: could not get actual Spark port");
-        }
-
         waitForServerToRun();
     }
 
@@ -45,7 +32,7 @@ abstract class SparkStarter {
     private void waitForServerToRun() {
         int tries = 10;
         while(tries>0) {
-            if(!isRunning()){
+            if(isRunning()){
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {

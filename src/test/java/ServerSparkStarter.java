@@ -28,9 +28,9 @@ public class ServerSparkStarter extends SparkStarter {
         try{
             int serverPort = 4567;
             HttpURLConnection con = (HttpURLConnection)new URL("http",host, serverPort, heartBeatPath).openConnection();
-            return con.getResponseCode()==200;
+            return con.getResponseCode() != 200;
         }catch(Exception e){
-            return false;
+            return true;
         }
 
     }

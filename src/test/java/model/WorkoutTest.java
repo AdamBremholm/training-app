@@ -12,7 +12,6 @@ public class WorkoutTest {
 
     private Workout mockWorkout1;
     private Workout mockWorkout2;
-    private Workout mockWorkout4;
     private User mockUser1;
     private Map<String, Exercise> exercisesA;
     private Map<String, Exercise> exercisesB;
@@ -30,11 +29,6 @@ public class WorkoutTest {
                 .withUserId("mockUserId2")
                 .withHeight(165)
                 .withWeight(60)
-                .build();
-        User mockUser3 = new User.Builder("kidMock", "kid@mockmail.com", "kid")
-                .withUserId("mockUserId3")
-                .withHeight(110)
-                .withWeight(50)
                 .build();
 
         Set setA = new Set.Builder().withRepetitions(5).withWeight(60).build();
@@ -103,34 +97,28 @@ public class WorkoutTest {
                 .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
                 .build();
-        Workout mockWorkout3 = new Workout.Builder(mockUser3, exercisesA)
-                .withStartTime(Instant.parse("2019-10-04T10:15:30.00Z"))
-                .withEndTime(Instant.parse("2019-10-04T10:16:30.00Z"))
-                .build();
-         mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
-                .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
-                .withEndTime(Instant.parse("2019-10-05T16:16:30.00Z"))
-                .build();
     }
 
     @Test (expected =  IllegalArgumentException.class)
     public void IllegalArgumentExceptionIsThrownIfEndTimeIsBeforeStartTime() {
-        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+        //noinspection unused because it will fail in constructor
+        Workout mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .withEndTime(Instant.parse("2019-10-04T16:16:30.00Z"))
                 .build();
         fail();
     }
 
+    @SuppressWarnings("unused") // tests constructor
     @Test
     public void okToConstructWithOnlyStartTimeOnlyEndTimeOrNoTime() {
-        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+        Workout mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .build();
-        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+        Workout mockWorkout5 = new Workout.Builder(mockUser1, exercisesB)
                 .withEndTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .build();
-        mockWorkout4 = new Workout.Builder(mockUser1, exercisesB)
+       Workout mockWorkout6 = new Workout.Builder(mockUser1, exercisesB)
                 .build();
     }
 
@@ -138,7 +126,8 @@ public class WorkoutTest {
 
     @Test(expected =  IllegalArgumentException.class)
     public void IllegalArgumentExceptionIsThrownIfMandatoryParamsNull() {
-        mockWorkout4 = new Workout.Builder(null, exercisesB)
+        //noinspection unused tests constructor
+        Workout mockWorkout4 = new Workout.Builder(null, exercisesB)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .build();
         fail();
@@ -146,7 +135,8 @@ public class WorkoutTest {
 
     @Test(expected =  IllegalArgumentException.class)
     public void IllegalArgumentExceptionIsThrownIfMandatoryParamsNull2() {
-        mockWorkout4 = new Workout.Builder(mockUser1, null)
+        //noinspection unused because it will fail in constructor
+        Workout mockWorkout4 = new Workout.Builder(mockUser1, null)
                 .withStartTime(Instant.parse("2019-10-05T15:15:30.00Z"))
                 .build();
         fail();
@@ -200,7 +190,7 @@ public class WorkoutTest {
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
 
-        assertTrue(mockWorkout1.fieldsEnumContainsNonComputedFieldsOfParent(mockWorkout1, EnumSet.allOf(ImmutableFields.class)));
+        assertTrue(mockWorkout1.fieldsEnumContainsNonComputedFieldsOfParent());
     }
 
     @Test

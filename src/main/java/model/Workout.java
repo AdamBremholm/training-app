@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JsonDeserialize(builder = Workout.Builder.class)
-public class Workout implements Reflectable {
+public class Workout {
 
     private final String workoutId;
     private final User user;
@@ -94,8 +94,6 @@ public class Workout implements Reflectable {
     }
 
 
-
-
     public String getWorkoutId() {
         return workoutId;
     }
@@ -163,8 +161,8 @@ public class Workout implements Reflectable {
                 '}';
     }
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
-        Field[] fields = reflectable.getClass().getDeclaredFields();
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent() {
+        Field[] fields = this.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =

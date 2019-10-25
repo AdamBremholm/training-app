@@ -6,13 +6,16 @@ public class TemplateSet {
     private  int repetitions;
     private  double weight;
 
+    @SuppressWarnings("unused")
     public TemplateSet() {
     }
 
+    @SuppressWarnings("unused")
     public String getSetId() {
         return setId;
     }
 
+    @SuppressWarnings("unused")
     public void setSetId(String setId) {
         this.setId = setId;
     }

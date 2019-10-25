@@ -3,7 +3,6 @@ package model;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.EnumSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -79,7 +78,7 @@ public class ExerciseTest {
 
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
-        exercise.fieldsEnumContainsNonComputedFieldsOfParent(exercise, EnumSet.allOf(ImmutableFields.class));
+        exercise.fieldsEnumContainsNonComputedFieldsOfParent();
     }
 
     @Test

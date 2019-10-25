@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.lang.reflect.Field;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JsonDeserialize(builder = Set.Builder.class)
-public class Set implements Comparable<Set>, Reflectable {
+public class Set implements Comparable<Set> {
 
     private final String setId;
     private final int repetitions;
@@ -118,8 +117,8 @@ public class Set implements Comparable<Set>, Reflectable {
                 '}';
     }
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
-        Field[] fields = reflectable.getClass().getDeclaredFields();
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent() {
+        Field[] fields = this.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =

@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 
 @JsonDeserialize(builder = Exercise.Builder.class)
-public class Exercise implements Reflectable {
+public class Exercise {
 
     private final String exerciseId;
     private final Type type;
@@ -125,8 +125,8 @@ public class Exercise implements Reflectable {
 
 
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
-        Field[] fields = reflectable.getClass().getDeclaredFields();
+    public void fieldsEnumContainsNonComputedFieldsOfParent() {
+        Field[] fields = this.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =
@@ -141,7 +141,7 @@ public class Exercise implements Reflectable {
 
         actualFieldNames.removeAll(computedEnumList);
 
-        return actualFieldNames.containsAll(enumList);
+        actualFieldNames.containsAll(enumList);
     }
 
     public enum Type {

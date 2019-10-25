@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.lang.reflect.Field;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JsonDeserialize(builder = User.Builder.class)
-public class User implements Reflectable {
+public class User {
 
     private final String userId;
     private final String username;
@@ -124,8 +123,8 @@ public class User implements Reflectable {
                 '}';
     }
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent(Reflectable reflectable, EnumSet computedFields) {
-        Field[] fields = reflectable.getClass().getDeclaredFields();
+    public boolean fieldsEnumContainsNonComputedFieldsOfParent() {
+        Field[] fields = this.getClass().getDeclaredFields();
         List<String> actualFieldNames = Reflectable.getFieldNames(fields);
 
         List<String> computedEnumList =

@@ -3,8 +3,6 @@ package model;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.EnumSet;
-
 import static org.junit.Assert.*;
 
 public class SetTest {
@@ -96,6 +94,6 @@ public class SetTest {
 
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
-        assertTrue(set.fieldsEnumContainsNonComputedFieldsOfParent(set, EnumSet.allOf(ImmutableFields.class)));
+        assertTrue(set.fieldsEnumContainsNonComputedFieldsOfParent());
     }
 }
