@@ -353,15 +353,17 @@ public class ControllerJPARepositoryTest {
         assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
     }
 
+    //Fixat  med try catch
     @Test(expected = IllegalArgumentException.class)
     public void updateUserObjectInWorkoutUnknownFieldNameInRequestThrowsException() throws JsonProcessingException {
-
-        repository.save(mockWorkout3);
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.put("johnny", "gurkan@gmail.com");
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         Mockito.doThrow(IllegalArgumentException.class).when(mockResponse).status(HTTP_BAD_REQUEST);
+
         controller.update(mockRequest, mockResponse);
     }
 
@@ -369,7 +371,24 @@ public class ControllerJPARepositoryTest {
     @Test
     public void updateMultipleValuesInNestedObjectInWorkout() throws JsonProcessingException {
 
-        repository.save(mockWorkout3);
+        User resultUser = new User.Builder("a", "gurkan@gmail.com", "c")
+                .withUserId("mockUserId4")
+                .withWeight(60.53)
+                .build();
+        Set setA = new Set.Builder().withRepetitions(5).withWeight(60).withSetId("A").build();
+        Map<String, Set> sets1 = new NoOverWriteMap<>();
+        sets1.put(setA.getSetId(), setA);
+        Exercise benchPress = new Exercise.Builder(Exercise.Type.BENCHPRESS, sets1).withExerciseId("2e").build();
+        Map<String, Exercise> exercisesA = new HashMap<>();
+        exercisesA.put(benchPress.getExerciseId(), benchPress);
+        Workout resultWorkout = new Workout.Builder(resultUser, exercisesA)
+                .withWorkoutId(mockWorkout3.getWorkoutId())
+                .withStartTime(Instant.parse("2019-10-03T10:15:30Z"))
+                .withEndTime(Instant.parse("2019-10-04T10:16:30Z"))
+                .build();
+
+        mockRepository.save(mockWorkout3);
+        when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
         userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
         userJsonNode.put(User.Fields.weight.name(), "60.53");
@@ -377,6 +396,7 @@ public class ControllerJPARepositoryTest {
         workoutJsonNode.replace(Workout.Fields.user.name(), userJsonNode);
         Mockito.when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         Mockito.when(mockRequest.params(Workout.Fields.workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
+        when(mockRepository.update(anyString(), (Workout)any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
         assertEquals("gurkan@gmail.com", jsonNodeRes.get(Workout.Fields.user.name()).get(User.Fields.email.name()).asText());
@@ -426,9 +446,8 @@ public class ControllerJPARepositoryTest {
         assertEquals(22, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A2").getRepetitions());
         assertEquals(33, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("1e").getSets().get("A3").getWeight(), DELTA);
         assertEquals(44, repository.getWorkoutMap().get(mockWorkout3.getWorkoutId()).getExercises().get("2e").getSets().get("B").getWeight(), DELTA);
-
-
          */
+
         assertTrue(result.contains("11"));
         assertTrue(result.contains("22"));
         assertTrue(result.contains("33"));
