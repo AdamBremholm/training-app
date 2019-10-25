@@ -16,6 +16,7 @@ import spark.Request;
 import spark.Response;
 
 import static model.Workout.Fields.*;
+import static model.User.Fields.*;
 import static model.Exercise.Type.*;
 
 
@@ -26,6 +27,7 @@ import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 
 public class ControllerJPARepositoryTest {
@@ -57,7 +59,7 @@ public class ControllerJPARepositoryTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        initMocks(this);
         mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
         controller = Controller.getInstance(mockRepository, mapper);
 
@@ -90,7 +92,6 @@ public class ControllerJPARepositoryTest {
         Map<String, Set> sets3 = new NoOverWriteMap<>();
         sets3.put(setC.getSetId(), setC);
 
-
         Exercise squats = new Exercise.Builder(SQUAT, sets1).withExerciseId("1e").build();
         Exercise benchPress = new Exercise.Builder(BENCHPRESS, sets2).withExerciseId("2e").build();
         Exercise deadLift = new Exercise.Builder(DEADLIFT, sets3).withExerciseId("3e").build();
@@ -107,9 +108,7 @@ public class ControllerJPARepositoryTest {
                 .build();
 
         mockWorkoutJsonNode = workoutToJsonNode(mockWorkout3);
-
         mockWorkOutId = mockWorkout3.getWorkoutId();
-
 
     }
 
@@ -169,11 +168,11 @@ public class ControllerJPARepositoryTest {
     @Test
     public void saveCreatesUserIdIfNoneProvided() {
 
-        ((ObjectNode) mockWorkoutJsonNode.get(user.name())).remove(User.Fields.userId.name());
+        ((ObjectNode) mockWorkoutJsonNode.get(user.name())).remove(userId.name());
         when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         when(mockRepository.save(any())).thenReturn(mockWorkout3);
         String res = controller.save(mockRequest, mockResponse);
-        assertTrue(res.contains(User.Fields.userId.name()));
+        assertTrue(res.contains(userId.name()));
         verify(mockRequest).body();
     }
 
@@ -343,14 +342,14 @@ public class ControllerJPARepositoryTest {
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
+        userJsonNode.put(email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(user.name(), userJsonNode);
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(email.name()).asText());
     }
 
 
@@ -390,8 +389,8 @@ public class ControllerJPARepositoryTest {
         mockRepository.save(mockWorkout3);
         when(mockRepository.get(anyString())).thenReturn(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
-        userJsonNode.put(User.Fields.weight.name(), "60.53");
+        userJsonNode.put(email.name(), "gurkan@gmail.com");
+        userJsonNode.put(weight.name(), "60.53");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(user.name(), userJsonNode);
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
@@ -399,8 +398,8 @@ public class ControllerJPARepositoryTest {
         when(mockRepository.update(anyString(), any())).thenReturn(resultWorkout);
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
-        assertEquals("60.53", jsonNodeRes.get(user.name()).get(User.Fields.weight.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(email.name()).asText());
+        assertEquals("60.53", jsonNodeRes.get(user.name()).get(weight.name()).asText());
     }
 
     @Test
@@ -630,36 +629,36 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void totalLiftedWeightByUser() {
-        when(mockRepository.totalLiftedWeightByUser(anyString())).thenReturn(3990d);
-        assertEquals(3990, controller.totalLiftedWeightByUser("mockUserId"), DELTA);
+        when(mockRepository.findByUserId(anyString())).thenReturn(Arrays.asList(mockWorkout, mockWorkout, mockWorkout));
+        assertEquals(3990, controller.totalLiftedWeightByUser(mockRequest, mockResponse), DELTA);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void totalLiftedWeightByUserNull() {
-        controller.totalLiftedWeightByUser(null);
+        controller.totalLiftedWeightByUser(mockRequest, mockResponse);
         fail();
     }
 
     @Test
     public void heaviestLiftByUser() {
         when(mockRepository.heaviestLiftByUser(anyString())).thenReturn(60d);
-        assertEquals(60, controller.heaviestLiftByUser("mockUserId"), DELTA);
+        assertEquals(60, controller.heaviestLiftByUser(mockRequest, mockResponse), DELTA);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void heaviestLiftByUserNull() {
-        controller.heaviestLiftByUser(null);
+        controller.heaviestLiftByUser(mockRequest, mockResponse);
     }
 
     @Test
     public void totalLiftsByUser() {
         when(mockRepository.totalLiftsByUser(anyString())).thenReturn(76);
-        assertEquals(76, controller.totalLiftsByUser("mockUserId"));
+        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void totalLiftsByUserNull() {
-        assertEquals(76, controller.totalLiftsByUser(null));
+        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {

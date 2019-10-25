@@ -8,7 +8,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import model.*;
 import static model.Workout.Fields.*;
+import static model.Exercise.Fields.*;
+import static model.Set.Fields.*;
+import static model.User.Fields.*;
 import static model.Exercise.Type.*;
+
 
 
 import model.Set;
@@ -166,7 +170,7 @@ public class ControllerMapRepositoryTest {
     @Test
     public void saveCreatesUserIdIfNoneProvided() {
 
-        ((ObjectNode)mockWorkoutJsonNode.get(user.name())).remove(User.Fields.userId.name());
+        ((ObjectNode)mockWorkoutJsonNode.get(user.name())).remove(userId.name());
         when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         assertEquals(4, repository.size());
         String res = controller.save(mockRequest, mockResponse);
@@ -312,14 +316,14 @@ public class ControllerMapRepositoryTest {
 
         repository.save(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
+        userJsonNode.put(email.name(), "gurkan@gmail.com");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(user.name(), userJsonNode);
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(email.name()).asText());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -340,7 +344,7 @@ public class ControllerMapRepositoryTest {
 
         repository.save(mockWorkout3);
         ObjectNode userJsonNode = mapper.createObjectNode();
-        userJsonNode.put(User.Fields.email.name(), "gurkan@gmail.com");
+        userJsonNode.put(email.name(), "gurkan@gmail.com");
         userJsonNode.put(User.Fields.weight.name(), "60.53");
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(user.name(), userJsonNode);
@@ -348,7 +352,7 @@ public class ControllerMapRepositoryTest {
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         String result = controller.update(mockRequest, mockResponse);
         JsonNode jsonNodeRes = mapStringToJsonNode(result);
-        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(User.Fields.email.name()).asText());
+        assertEquals("gurkan@gmail.com", jsonNodeRes.get(user.name()).get(email.name()).asText());
         assertEquals("60.53", jsonNodeRes.get(user.name()).get(User.Fields.weight.name()).asText());
     }
 
@@ -358,9 +362,9 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
-        setNode1.put(Set.Fields.repetitions.name(), "11");
+        setNode1.put(repetitions.name(), "11");
         ObjectNode setNode2 = mapper.createObjectNode();
-        setNode2.put(Set.Fields.repetitions.name(), "22");
+        setNode2.put(repetitions.name(), "22");
         ObjectNode setNode3 = mapper.createObjectNode();
         setNode3.put(Set.Fields.weight.name(), "33");
         ObjectNode setNode4 = mapper.createObjectNode();
@@ -372,11 +376,11 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("B", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
-        exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
+        exerciseNode1.put(type.name(), CHINS.name());
+        exerciseNode1.replace(sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.put(Exercise.Fields.type.name(), POWERCLEAN.name());
-        exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
+        exerciseNode2.put(type.name(), POWERCLEAN.name());
+        exerciseNode2.replace(sets.name(), setsNode2);
         ObjectNode exercisesNode = mapper.createObjectNode();
         exercisesNode.replace("1e", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
@@ -407,10 +411,10 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
-        setNode1.put(Set.Fields.repetitions.name(), "11");
+        setNode1.put(repetitions.name(), "11");
         ObjectNode setNode2 = mapper.createObjectNode();
-        setNode2.put(Set.Fields.setId.name(), "NewValue");
-        setNode2.put(Set.Fields.repetitions.name(), "22");
+        setNode2.put(setId.name(), "NewValue");
+        setNode2.put(repetitions.name(), "22");
         ObjectNode setNode3 = mapper.createObjectNode();
         setNode3.put(Set.Fields.weight.name(), "33");
         ObjectNode setNode4 = mapper.createObjectNode();
@@ -422,12 +426,12 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("B", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
-        exerciseNode1.put(Exercise.Fields.exerciseId.name(), "NewValue");
-        exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
+        exerciseNode1.put(type.name(), CHINS.name());
+        exerciseNode1.put(exerciseId.name(), "NewValue");
+        exerciseNode1.replace(sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.put(Exercise.Fields.type.name(), POWERCLEAN.name());
-        exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
+        exerciseNode2.put(type.name(), POWERCLEAN.name());
+        exerciseNode2.replace(sets.name(), setsNode2);
         ObjectNode exercisesNode = mapper.createObjectNode();
         exercisesNode.replace("1e", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
@@ -451,9 +455,9 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
 
         ObjectNode setNode1 = mapper.createObjectNode();
-        setNode1.put(Set.Fields.repetitions.name(), "11");
+        setNode1.put(repetitions.name(), "11");
         ObjectNode setNode2 = mapper.createObjectNode();
-        setNode2.put(Set.Fields.repetitions.name(), "22");
+        setNode2.put(repetitions.name(), "22");
         ObjectNode setNode3 = mapper.createObjectNode();
         setNode3.put(Set.Fields.weight.name(), "33");
         ObjectNode setNode4 = mapper.createObjectNode();
@@ -465,11 +469,11 @@ public class ControllerMapRepositoryTest {
         ObjectNode setsNode2 = mapper.createObjectNode();
         setsNode2.replace("WrongId", setNode4);
         ObjectNode exerciseNode1 = mapper.createObjectNode();
-        exerciseNode1.put(Exercise.Fields.type.name(), CHINS.name());
-        exerciseNode1.put(Exercise.Fields.exerciseId.name(), "NewValue");
-        exerciseNode1.replace(Exercise.Fields.sets.name(), setsNode1);
+        exerciseNode1.put(type.name(), CHINS.name());
+        exerciseNode1.put(exerciseId.name(), "NewValue");
+        exerciseNode1.replace(sets.name(), setsNode1);
         ObjectNode exerciseNode2 = mapper.createObjectNode();
-        exerciseNode2.replace(Exercise.Fields.sets.name(), setsNode2);
+        exerciseNode2.replace(sets.name(), setsNode2);
         ObjectNode exercisesNode = mapper.createObjectNode();
         exercisesNode.replace("WrongId", exerciseNode1);
         exercisesNode.replace("2e", exerciseNode2);
@@ -497,7 +501,7 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(heaviestExercise.name(), exerciseNode );
+        workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode );
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -513,7 +517,7 @@ public class ControllerMapRepositoryTest {
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(heaviestSet.name(), setNode);
+        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(exercises.name(), exerciseArray );
@@ -533,7 +537,7 @@ public class ControllerMapRepositoryTest {
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(heaviestSet.name(), setNode);
+        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(exercises.name(), exerciseArray );
@@ -544,9 +548,7 @@ public class ControllerMapRepositoryTest {
         controller.update(mockRequest, mockResponse);
         assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
 
-
     }
-
 
 
     @Test(expected = NoSuchElementException.class )
@@ -600,41 +602,49 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void totalLiftedWeightByUser() {
-        assertEquals(3990, controller.totalLiftedWeightByUser("mockUserId"), DELTA);
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        assertEquals(3990, controller.totalLiftedWeightByUser(mockRequest, mockResponse), DELTA);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void totalLiftedWeightByUserNull() {
-        controller.totalLiftedWeightByUser(null);
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        controller.totalLiftedWeightByUser(mockRequest, mockResponse);
         fail();
     }
 
     @Test
     public void heaviestLiftByUser() {
-        assertEquals(60, controller.heaviestLiftByUser("mockUserId"), DELTA);
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        assertEquals(60, controller.heaviestLiftByUser(mockRequest, mockResponse), DELTA);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void heaviestLiftByUserNull() {
-        controller.heaviestLiftByUser(null);
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        controller.heaviestLiftByUser(mockRequest, mockResponse);
     }
 
     @Test
     public void totalLiftsByUser() {
-        assertEquals(76, controller.totalLiftsByUser("mockUserId"));
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void totalLiftsByUserNull() {
-        assertEquals(76, controller.totalLiftsByUser(null));
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
     }
 
-    private JsonNode workoutToJsonNode(Workout workout){
+    private JsonNode workoutToJsonNode(Workout workout) {
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
         return mapper.convertValue(workout, JsonNode.class);
     }
 
 
     private JsonNode mapStringToJsonNode(String jsonString) throws JsonProcessingException {
+        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
         return mapper.readTree(jsonString);
     }
 

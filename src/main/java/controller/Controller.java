@@ -264,13 +264,12 @@ public class Controller implements Initialisable {
     }
 
 
-    public double totalLiftedWeightByUser(Request request, Response response) {
+    public String totalLiftedWeightByUser(Request request, Response response) {
         try {
             String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
-            String presentUserId = Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new);
             response.status(HTTP_OK);
             response.type(APPLICATION_JSON);
-            return repository.totalLiftedWeightByUser();
+            return String.valueOf(repository.totalLiftedWeightByUser(userId));
 
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
@@ -281,12 +280,14 @@ public class Controller implements Initialisable {
     }
 
 
-    public double heaviestLiftByUser(Request request, Response response) {
+    public String heaviestLiftByUser(Request request, Response response) {
+        String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
        return repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
-    public int totalLiftsByUser(Request request, Response response) {
+    public String totalLiftsByUser(Request request, Response response) {
+        String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
         return repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 }
