@@ -5,7 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import model.ImmutableFields;
+
+import model.Exercise;
 import model.User;
 import model.Workout;
 import model.template.TemplateExercise;
@@ -15,6 +16,7 @@ import model.template.TemplateWorkout;
 import repository.Repository;
 import spark.Request;
 import spark.Response;
+import view.HtmlView;
 import view.JsonView;
 
 import java.time.Instant;
@@ -26,13 +28,14 @@ import java.util.Optional;
 import static java.net.HttpURLConnection.*;
 
 
-public class Controller implements Initialisable {
+public class Controller {
 
 
     private final Repository repository;
     private final ObjectMapper mapper;
     private static final String IN_PARAM_NULL = "one of the methods in parameters is null";
     private static final String APPLICATION_JSON = "application/json";
+    private static final String TEXT_HTML = "text/html";
 
 
     private Controller(Repository repository, ObjectMapper mapper){
@@ -137,10 +140,16 @@ public class Controller implements Initialisable {
 
         final String IMMUTABLE_FIELD = " is an immutable field, remove it from request ";
         JsonNode jsonNode;
-        for (ImmutableFields cf : ImmutableFields.values()) {
-            jsonNode = requestData.findValue(cf.toString());
+        for (Workout.ImmutableFields imF : Workout.ImmutableFields.values()) {
+            jsonNode = requestData.findValue(imF.toString());
             Optional.ofNullable(jsonNode).ifPresent(s -> {
-                throw new IllegalArgumentException(cf.toString() + IMMUTABLE_FIELD);
+                throw new IllegalArgumentException(imF.toString() + IMMUTABLE_FIELD);
+            });
+        }
+        for (Exercise.ImmutableFields imF : Exercise.ImmutableFields.values()) {
+            jsonNode = requestData.findValue(imF.toString());
+            Optional.ofNullable(jsonNode).ifPresent(s -> {
+                throw new IllegalArgumentException(imF.toString() + IMMUTABLE_FIELD);
             });
         }
     }
@@ -268,8 +277,8 @@ public class Controller implements Initialisable {
         try {
             String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
             response.status(HTTP_OK);
-            response.type(APPLICATION_JSON);
-            return String.valueOf(repository.totalLiftedWeightByUser(userId));
+            response.type(TEXT_HTML);
+            return HtmlView.printHtml(repository.totalLiftedWeightByUser(userId), "total lifted weight by user");
 
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
@@ -281,13 +290,32 @@ public class Controller implements Initialisable {
 
 
     public String heaviestLiftByUser(Request request, Response response) {
-        String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
-       return repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
+
+        try {
+            String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
+            response.status(HTTP_OK);
+            response.type(TEXT_HTML);
+            return HtmlView.printHtml(repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new)), "heaviest lift by user");
+
+        } catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
     }
 
 
     public String totalLiftsByUser(Request request, Response response) {
-        String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
-        return repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
+
+        try {
+            String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
+            response.status(HTTP_OK);
+            response.type(TEXT_HTML);
+            return HtmlView.printHtml(repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new)), "total lifts by user");
+
+        } catch (NoSuchElementException nse){
+            response.status(HTTP_NOT_FOUND);
+            return nse.toString();
+        }
     }
+
 }

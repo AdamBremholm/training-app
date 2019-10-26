@@ -1,13 +1,14 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controller.Initialisable;
+import utils.Init;
 
 import model.*;
 import okhttp3.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import utils.NoOverWriteMap;
 
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 
-public class TrainingServerTest {
+public class TrainingServerIntegrationTest {
 
     private final OkHttpClient client = new OkHttpClient();
     private final String BASE_URL = "http://localhost:4567/api";
@@ -37,7 +38,7 @@ public class TrainingServerTest {
 
     @Before
     public void setUp() {
-        mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
+        mapper = Init.getObjectMapperWithJavaDateTimeModule();
 
        User mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
                 .withUserId("mockUserId4")
@@ -210,5 +211,57 @@ public class TrainingServerTest {
         assertEquals(204, response.code());
 
     }
+
+    @Test
+    public void getTotalWeightsLiftedPerUser() throws IOException {
+
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/stats/totalweightlifted/mockUserId")
+                .build();
+
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        ResponseBody responseBody = response.body();
+        assert responseBody != null;
+        String res = responseBody.string();
+        assertNotNull(res);
+        assertEquals(200, response.code());
+
+    }
+
+    @Test
+    public void getTotalLiftsByUser() throws IOException {
+
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/stats/totallifts/mockUserId")
+                .build();
+
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        ResponseBody responseBody = response.body();
+        assert responseBody != null;
+        String res = responseBody.string();
+        assertNotNull(res);
+        assertEquals(200, response.code());
+
+    }
+
+    @Test
+    public void getHeaviestLift() throws IOException {
+
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/stats/heaviestlift/mockUserId")
+                .build();
+
+        Call call = client.newCall(request);
+        Response response = call.execute();
+        ResponseBody responseBody = response.body();
+        assert responseBody != null;
+        String res = responseBody.string();
+        assertNotNull(res);
+        assertEquals(200, response.code());
+
+    }
+
 
 }

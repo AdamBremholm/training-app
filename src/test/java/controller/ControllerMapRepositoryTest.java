@@ -22,6 +22,8 @@ import org.mockito.*;
 import repository.MapRepository;
 import spark.Request;
 import spark.Response;
+import utils.Init;
+import utils.NoOverWriteMap;
 
 import java.time.Instant;
 import java.util.*;
@@ -45,9 +47,9 @@ public class ControllerMapRepositoryTest {
     @Before
     public void setUp() {
 
-        mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
+        mapper = Init.getObjectMapperWithJavaDateTimeModule();
         controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), mapper);
-        Initialisable.populate(controller);
+        Init.populate(controller);
         repository = (MapRepository) controller.getRepository();
 
         MockitoAnnotations.initMocks(this);
@@ -117,13 +119,13 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void getInstanceReturnsNewObject() {
-        controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), Initialisable.getObjectMapperWithJavaDateTimeModule());
+        controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), Init.getObjectMapperWithJavaDateTimeModule());
         assertEquals(MapRepository.class, controller.getRepository().getClass());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getInstanceReturnsThrowsIllegalArgumentExceptionIfRepositoryIsNull() {
-        controller = Controller.getInstance(null, Initialisable.getObjectMapperWithJavaDateTimeModule());
+        controller = Controller.getInstance(null, Init.getObjectMapperWithJavaDateTimeModule());
        fail();
     }
 
@@ -222,7 +224,7 @@ public class ControllerMapRepositoryTest {
     public void getThrowsIllegalArgumentExceptionIfNoWorkoutIdIsProvidedInUrl()  {
         when(mockRequest.body()).thenReturn(mockWorkoutJsonNode.toString());
         controller.save(mockRequest, mockResponse);
-        when(mockRequest.params("noCorrectWorkoutIdField")).thenReturn("non-existent-workout-id");
+        when(mockRequest.params(workoutId.name())).thenReturn(null);
         argCaptor = ArgumentCaptor.forClass(Integer.class);
         doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         controller.get(mockRequest, mockResponse);
@@ -501,7 +503,7 @@ public class ControllerMapRepositoryTest {
         repository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode );
+        workoutJsonNode.replace(Workout.ImmutableFields.heaviestExercise.name(), exerciseNode );
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -517,7 +519,7 @@ public class ControllerMapRepositoryTest {
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(Exercise.ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(exercises.name(), exerciseArray );
@@ -537,7 +539,7 @@ public class ControllerMapRepositoryTest {
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(Exercise.ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(exercises.name(), exerciseArray );
@@ -602,21 +604,21 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void totalLiftedWeightByUser() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
-        assertEquals(3990, controller.totalLiftedWeightByUser(mockRequest, mockResponse), DELTA);
+        when(mockRequest.params(userId.name())).thenReturn("mockUserId");
+        assertTrue(controller.totalLiftedWeightByUser(mockRequest, mockResponse).contains("3990"));
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void totalLiftedWeightByUserNull() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+        when(mockRequest.params(userId.name())).thenReturn(null);
         controller.totalLiftedWeightByUser(mockRequest, mockResponse);
         fail();
     }
 
     @Test
     public void heaviestLiftByUser() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
-        assertEquals(60, controller.heaviestLiftByUser(mockRequest, mockResponse), DELTA);
+        when(mockRequest.params(userId.name())).thenReturn("mockUserId");
+        assertTrue(controller.heaviestLiftByUser(mockRequest, mockResponse).contains("60"));
     }
 
     @Test (expected = IllegalArgumentException.class)
@@ -627,8 +629,8 @@ public class ControllerMapRepositoryTest {
 
     @Test
     public void totalLiftsByUser() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
-        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
+        when(mockRequest.params(userId.name())).thenReturn("mockUserId");
+        assertTrue(controller.totalLiftsByUser(mockRequest, mockResponse).contains("76"));
     }
 
     @Test (expected = IllegalArgumentException.class)

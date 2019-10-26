@@ -3,6 +3,7 @@ package model;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import utils.Reflection;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -117,23 +118,17 @@ public class Set implements Comparable<Set> {
                 '}';
     }
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent() {
+    void fieldsEnumContainsNonComputedFieldsOfParent() {
         Field[] fields = this.getClass().getDeclaredFields();
-        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
-
-        List<String> computedEnumList =
-                Stream.of(ImmutableFields.values())
-                        .map(Enum::name)
-                        .collect(Collectors.toList());
+        List<String> actualFieldNames = Reflection.getFieldNames(fields);
 
         List<String> enumList =
                 Stream.of(Set.Fields.values())
                         .map(Enum::name)
                         .collect(Collectors.toList());
 
-        actualFieldNames.removeAll(computedEnumList);
-
-        return actualFieldNames.containsAll(enumList);
+        if(!actualFieldNames.containsAll(enumList) || !enumList.containsAll(actualFieldNames))
+            throw new IllegalStateException("all fields are not present in type enums or fields present in enum which are not actual fields");
     }
 
     public enum Fields {

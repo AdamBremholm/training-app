@@ -14,6 +14,8 @@ import repository.JPARepository;
 import repository.MapRepository;
 import spark.Request;
 import spark.Response;
+import utils.Init;
+import utils.NoOverWriteMap;
 
 import static model.Workout.Fields.*;
 import static model.User.Fields.*;
@@ -60,9 +62,8 @@ public class ControllerJPARepositoryTest {
     @Before
     public void setUp() {
         initMocks(this);
-        mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
+        mapper = Init.getObjectMapperWithJavaDateTimeModule();
         controller = Controller.getInstance(mockRepository, mapper);
-
 
         User mockUser4 = new User.Builder("mockUser4", "4@mockmail.com", "4")
                 .withUserId("mockUserId4")
@@ -116,13 +117,13 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void getInstanceReturnsNewObject() {
-        controller = Controller.getInstance(JPARepository.getInstance(), Initialisable.getObjectMapperWithJavaDateTimeModule());
+        controller = Controller.getInstance(JPARepository.getInstance(), Init.getObjectMapperWithJavaDateTimeModule());
         assertEquals(JPARepository.class, controller.getRepository().getClass());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getInstanceReturnsThrowsIllegalArgumentExceptionIfRepositoryIsNull() {
-        controller = Controller.getInstance(null, Initialisable.getObjectMapperWithJavaDateTimeModule());
+        controller = Controller.getInstance(null, Init.getObjectMapperWithJavaDateTimeModule());
         fail();
     }
 
@@ -540,7 +541,7 @@ public class ControllerJPARepositoryTest {
         mockRepository.save(mockWorkout3);
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode workoutJsonNode = mapper.createObjectNode();
-        workoutJsonNode.replace(ImmutableFields.heaviestExercise.name(), exerciseNode);
+        workoutJsonNode.replace(Workout.ImmutableFields.heaviestExercise.name(), exerciseNode);
         when(mockRequest.body()).thenReturn(workoutJsonNode.toPrettyString());
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getWorkoutId());
         argCaptor = ArgumentCaptor.forClass(Integer.class);
@@ -558,7 +559,7 @@ public class ControllerJPARepositoryTest {
         ArrayNode exerciseArray = mapper.createArrayNode();
         ObjectNode exerciseNode = mapper.createObjectNode();
         ObjectNode setNode = mapper.createObjectNode();
-        exerciseNode.replace(ImmutableFields.heaviestSet.name(), setNode);
+        exerciseNode.replace(Exercise.ImmutableFields.heaviestSet.name(), setNode);
         exerciseArray.add(exerciseNode);
         ObjectNode workoutJsonNode = mapper.createObjectNode();
         workoutJsonNode.replace(exercises.name(), exerciseArray);
@@ -629,8 +630,10 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void totalLiftedWeightByUser() {
-        when(mockRepository.findByUserId(anyString())).thenReturn(Arrays.asList(mockWorkout, mockWorkout, mockWorkout));
-        assertEquals(3990, controller.totalLiftedWeightByUser(mockRequest, mockResponse), DELTA);
+        when(mockRequest.params(userId.name())).thenReturn("");
+        when(mockRepository.findByUserId(anyString())).thenReturn(Arrays.asList(mockWorkout3, mockWorkout3, mockWorkout3));
+        when(mockRepository.totalLiftedWeightByUser(anyString())).thenReturn(3990.0);
+        assertTrue(controller.totalLiftedWeightByUser(mockRequest, mockResponse).contains("3990"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -641,8 +644,9 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void heaviestLiftByUser() {
+        when(mockRequest.params(userId.name())).thenReturn("");
         when(mockRepository.heaviestLiftByUser(anyString())).thenReturn(60d);
-        assertEquals(60, controller.heaviestLiftByUser(mockRequest, mockResponse), DELTA);
+        assertTrue(controller.heaviestLiftByUser(mockRequest, mockResponse).contains("60"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -652,8 +656,9 @@ public class ControllerJPARepositoryTest {
 
     @Test
     public void totalLiftsByUser() {
+        when(mockRequest.params(userId.name())).thenReturn("");
         when(mockRepository.totalLiftsByUser(anyString())).thenReturn(76);
-        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
+        assertTrue(controller.totalLiftsByUser(mockRequest, mockResponse).contains("76"));
     }
 
     @Test(expected = IllegalArgumentException.class)

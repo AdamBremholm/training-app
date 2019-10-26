@@ -1,7 +1,7 @@
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import controller.Controller;
-import controller.Initialisable;
+import utils.Init;
 import repository.MapRepository;
 
 import java.util.HashMap;
@@ -18,9 +18,9 @@ class TrainingServer {
 
     public static void main(String[] args) {
 
-        ObjectMapper mapper = Initialisable.getObjectMapperWithJavaDateTimeModule();
+        ObjectMapper mapper = Init.getObjectMapperWithJavaDateTimeModule();
         Controller controller = Controller.getInstance(MapRepository.getInstance(new HashMap<>()), mapper);
-        Initialisable.populate(controller);
+        Init.populate(controller);
 
         get("/heartbeat", controller::heartBeat);
         get("/api/workouts", controller::list);
@@ -28,9 +28,9 @@ class TrainingServer {
         get("/api/workouts/:"+workoutId.name(), controller::get);
         put("/api/workouts/:"+workoutId.name(), controller::update);
         delete("/api/workouts/:"+workoutId.name(), controller::delete);
-        get("/api/stats/totalWeightLifted?:"+ userId.name(), controller::totalLiftedWeightByUser);
-        get("/api/stats/heaviestLift?:"+userId.name(), controller::heaviestLiftByUser);
-        get("/api/stats/totalLifts?:"+userId.name(), controller::totalLiftsByUser);
+        get("/api/stats/totalweightlifted/:"+ userId.name(), controller::totalLiftedWeightByUser);
+        get("/api/stats/heaviestlift/:"+userId.name(), controller::heaviestLiftByUser);
+        get("/api/stats/totallifts/:"+userId.name(), controller::totalLiftsByUser);
 
     }
 

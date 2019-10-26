@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import utils.Reflection;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
@@ -161,9 +162,9 @@ public class Workout {
                 '}';
     }
 
-    public boolean fieldsEnumContainsNonComputedFieldsOfParent() {
+    public void fieldsEnumContainsNonComputedFieldsOfParent() {
         Field[] fields = this.getClass().getDeclaredFields();
-        List<String> actualFieldNames = Reflectable.getFieldNames(fields);
+        List<String> actualFieldNames = Reflection.getFieldNames(fields);
 
         List<String> computedEnumList =
                 Stream.of(ImmutableFields.values())
@@ -178,7 +179,9 @@ public class Workout {
         actualFieldNames.removeAll(computedEnumList);
         actualFieldNames.add(Fields.workoutId.name());
 
-        return actualFieldNames.containsAll(enumList);
+        if(!actualFieldNames.containsAll(enumList) || !enumList.containsAll(actualFieldNames))
+            throw new IllegalStateException("all fields are not present in type enums or fields present in enum which are not actual fields");
+
     }
 
     public enum Fields {
@@ -188,5 +191,11 @@ public class Workout {
         workoutId,
         startTime,
         endTime,
+    }
+
+    public enum ImmutableFields {
+        workoutId,
+        heaviestExercise,
+        totalRepetitions
     }
 }

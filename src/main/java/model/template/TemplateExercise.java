@@ -3,7 +3,7 @@ package model.template;
 
 import java.util.Map;
 
-@SuppressWarnings("unused")
+
 public class TemplateExercise {
 
     private String exerciseId;
@@ -55,7 +55,7 @@ public class TemplateExercise {
         this.totalRepetitions = totalRepetitions;
     }
 
-    @SuppressWarnings("unused")
+
     public enum  Type {
         SQUAT,
         BENCHPRESS,

@@ -2,6 +2,8 @@ package model;
 
 import org.junit.Before;
 import org.junit.Test;
+import utils.NoOverWriteMap;
+import utils.Reflection;
 
 import java.util.Map;
 
@@ -83,6 +85,6 @@ public class ExerciseTest {
 
     @Test
     public void toStringTest() {
-        Reflectable.getFieldNames(exercise.getClass().getDeclaredFields()).forEach((field)->  assertTrue(exercise.toString().contains(field)));
+        Reflection.getFieldNames(exercise.getClass().getDeclaredFields()).forEach((field)->  assertTrue(exercise.toString().contains(field)));
     }
 }

@@ -2,6 +2,7 @@ package model;
 
 import org.junit.Before;
 import org.junit.Test;
+import utils.Reflection;
 
 import static org.junit.Assert.*;
 
@@ -89,11 +90,11 @@ public class SetTest {
 
     @Test
     public void toStringTest() {
-        Reflectable.getFieldNames(set.getClass().getDeclaredFields()).forEach((field)->  assertTrue(set.toString().contains(field)));
+        Reflection.getFieldNames(set.getClass().getDeclaredFields()).forEach((field)->  assertTrue(set.toString().contains(field)));
     }
 
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
-        assertTrue(set.fieldsEnumContainsNonComputedFieldsOfParent());
+       set.fieldsEnumContainsNonComputedFieldsOfParent();
     }
 }

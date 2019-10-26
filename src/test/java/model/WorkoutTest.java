@@ -2,6 +2,8 @@ package model;
 
 import org.junit.Before;
 import org.junit.Test;
+import utils.NoOverWriteMap;
+import utils.Reflection;
 
 import java.time.Instant;
 import java.util.*;
@@ -189,8 +191,7 @@ public class WorkoutTest {
 
     @Test
     public void fieldsEnumContainsNonComputedFieldsOfParent() {
-
-        assertTrue(mockWorkout1.fieldsEnumContainsNonComputedFieldsOfParent());
+        mockWorkout1.fieldsEnumContainsNonComputedFieldsOfParent();
     }
 
     @Test
@@ -205,6 +206,6 @@ public class WorkoutTest {
 
     @Test
     public void testToString() {
-       Reflectable.getFieldNames(mockWorkout1.getClass().getDeclaredFields()).forEach((field)->  assertTrue(mockWorkout1.toString().contains(field)));
+       Reflection.getFieldNames(mockWorkout1.getClass().getDeclaredFields()).forEach((field)->  assertTrue(mockWorkout1.toString().contains(field)));
     }
 }

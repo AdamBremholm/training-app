@@ -1,9 +1,10 @@
-package controller;
+package utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import controller.Controller;
 import model.*;
 import model.Set;
 import repository.Repository;
@@ -11,9 +12,9 @@ import repository.Repository;
 import java.time.Instant;
 import java.util.*;
 
-public interface Initialisable {
+public class Init {
 
-    static void populate(Controller controller)  {
+   public static void populate(Controller controller)  {
 
         Repository repository = controller.getRepository();
 
@@ -117,7 +118,7 @@ public interface Initialisable {
 
     }
 
-    static ObjectMapper getObjectMapperWithJavaDateTimeModule(){
+    public static ObjectMapper getObjectMapperWithJavaDateTimeModule(){
        return JsonMapper.builder().addModule(new JavaTimeModule())
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                 .build();

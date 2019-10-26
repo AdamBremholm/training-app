@@ -1,6 +1,6 @@
 package model.template;
 
-@SuppressWarnings("ALL")
+
 public class TemplateUser {
 
     private  String userId;
