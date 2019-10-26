@@ -663,7 +663,8 @@ public class ControllerJPARepositoryTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void totalLiftsByUserNull() {
-        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
+      controller.totalLiftsByUser(mockRequest, mockResponse);
+      fail();
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {

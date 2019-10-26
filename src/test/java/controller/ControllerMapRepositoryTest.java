@@ -636,7 +636,8 @@ public class ControllerMapRepositoryTest {
     @Test (expected = IllegalArgumentException.class)
     public void totalLiftsByUserNull() {
         when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
-        assertEquals(76, controller.totalLiftsByUser(mockRequest, mockResponse));
+       controller.totalLiftsByUser(mockRequest, mockResponse);
+       fail();
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {
