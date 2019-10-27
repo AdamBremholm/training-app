@@ -73,7 +73,7 @@ public class Controller {
         optionalRequestWorkout.map(TemplateWorkout::getExercises).ifPresent((requestExercises)-> updateTemplateExercises(templateWorkout.getExercises(), requestExercises));
 
         if(Optional.ofNullable(templateWorkout.getUser()).isPresent() && optionalRequestWorkout.map(TemplateWorkout::getUser).isPresent())
-         updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
+            updateTemplateUser(templateWorkout.getUser(), requestData.getUser());
 
         validateTemplateWorkout(templateWorkout);
         return templateWorkout;
