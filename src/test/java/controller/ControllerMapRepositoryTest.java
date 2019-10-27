@@ -608,11 +608,13 @@ public class ControllerMapRepositoryTest {
         assertTrue(controller.totalLiftedWeightByUser(mockRequest, mockResponse).contains("3990"));
     }
 
-    @Test (expected = IllegalArgumentException.class)
+    @Test
     public void totalLiftedWeightByUserNull() {
-        when(mockRequest.params(userId.name())).thenReturn(null);
+        when(mockRequest.params(workoutId.name())).thenReturn(null);
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         controller.totalLiftedWeightByUser(mockRequest, mockResponse);
-        fail();
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test
@@ -621,10 +623,22 @@ public class ControllerMapRepositoryTest {
         assertTrue(controller.heaviestLiftByUser(mockRequest, mockResponse).contains("60"));
     }
 
-    @Test (expected = IllegalArgumentException.class)
-    public void heaviestLiftByUserNull() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
+    @Test
+    public void heaviestLiftNoUser() {
+        when(mockRequest.params(userId.name())).thenReturn("no-matchingUserId");
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         controller.heaviestLiftByUser(mockRequest, mockResponse);
+        assertEquals(HTTP_NOT_FOUND, argCaptor.getValue());
+    }
+
+    @Test
+    public void heaviestLiftByUserNull() {
+        when(mockRequest.params(workoutId.name())).thenReturn(null);
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        controller.heaviestLiftByUser(mockRequest, mockResponse);
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test
@@ -633,11 +647,20 @@ public class ControllerMapRepositoryTest {
         assertTrue(controller.totalLiftsByUser(mockRequest, mockResponse).contains("76"));
     }
 
-    @Test (expected = IllegalArgumentException.class)
+
+
+    @Test
     public void totalLiftsByUserNull() {
-        when(mockRequest.params(workoutId.name())).thenReturn(mockWorkout3.getUser().getUserId());
-       controller.totalLiftsByUser(mockRequest, mockResponse);
-       fail();
+        when(mockRequest.params(workoutId.name())).thenReturn(null);
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        controller.totalLiftsByUser(mockRequest, mockResponse);
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+    }
+
+    @Test
+    public void heartBeat() {
+      assertEquals("heartbeat", controller.heartBeat(mockRequest, mockResponse));
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {

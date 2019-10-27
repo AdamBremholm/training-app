@@ -636,10 +636,12 @@ public class ControllerJPARepositoryTest {
         assertTrue(controller.totalLiftedWeightByUser(mockRequest, mockResponse).contains("3990"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void totalLiftedWeightByUserNull() {
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         controller.totalLiftedWeightByUser(mockRequest, mockResponse);
-        fail();
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test
@@ -649,9 +651,12 @@ public class ControllerJPARepositoryTest {
         assertTrue(controller.heaviestLiftByUser(mockRequest, mockResponse).contains("60"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void heaviestLiftByUserNull() {
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
         controller.heaviestLiftByUser(mockRequest, mockResponse);
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
     }
 
     @Test
@@ -661,10 +666,13 @@ public class ControllerJPARepositoryTest {
         assertTrue(controller.totalLiftsByUser(mockRequest, mockResponse).contains("76"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void totalLiftsByUserNull() {
-      controller.totalLiftsByUser(mockRequest, mockResponse);
-      fail();
+        argCaptor = ArgumentCaptor.forClass(Integer.class);
+        doNothing().when(mockResponse).status((Integer) argCaptor.capture());
+        controller.totalLiftsByUser(mockRequest, mockResponse);
+        assertEquals(HTTP_BAD_REQUEST, argCaptor.getValue());
+
     }
 
     private JsonNode workoutToJsonNode(Workout workout) {

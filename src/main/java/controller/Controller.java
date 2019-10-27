@@ -263,12 +263,12 @@ public class Controller {
     }
 
 
-    public List<Workout> findByUserId(String userId) {
+    List<Workout> findByUserId(String userId) {
         return repository.findByUserId(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new));
     }
 
 
-    public int size() {
+    int size() {
         return repository.size();
     }
 
@@ -280,9 +280,9 @@ public class Controller {
             response.type(TEXT_HTML);
             return HtmlView.printHtml(repository.totalLiftedWeightByUser(userId), "total lifted weight by user");
 
-        } catch (NoSuchElementException nse){
-            response.status(HTTP_NOT_FOUND);
-            return nse.toString();
+        } catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
 
 
@@ -295,11 +295,15 @@ public class Controller {
             String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
             response.status(HTTP_OK);
             response.type(TEXT_HTML);
-            return HtmlView.printHtml(repository.heaviestLiftByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new)), "heaviest lift by user");
+            return HtmlView.printHtml(repository.heaviestLiftByUser(userId), "heaviest lift by user");
 
         } catch (NoSuchElementException nse){
             response.status(HTTP_NOT_FOUND);
             return nse.toString();
+        }
+        catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
     }
 
@@ -310,11 +314,11 @@ public class Controller {
             String userId = Optional.ofNullable(request.params(User.Fields.userId.name())).orElseThrow(IllegalArgumentException::new);
             response.status(HTTP_OK);
             response.type(TEXT_HTML);
-            return HtmlView.printHtml(repository.totalLiftsByUser(Optional.ofNullable(userId).orElseThrow(IllegalArgumentException::new)), "total lifts by user");
+            return HtmlView.printHtml(repository.totalLiftsByUser(userId), "total lifts by user");
 
-        } catch (NoSuchElementException nse){
-            response.status(HTTP_NOT_FOUND);
-            return nse.toString();
+        } catch (IllegalArgumentException iae){
+            response.status(HTTP_BAD_REQUEST);
+            return iae.toString();
         }
     }
 

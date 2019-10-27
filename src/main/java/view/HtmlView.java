@@ -11,9 +11,8 @@ public class HtmlView {
         String header ="<html>" +
                 "<style>" +
                         "h1 {" +
-                        "font-size: 72px;" +
+                        "font-size: 36px;" +
                         "color: " + "blue" + ";" +
-                        "background: -webkit-linear-gradient(#eee, #333);" +
                         "}" +
                         "</style>";
         String nonNullOperation = Optional.ofNullable(operation).orElseThrow(IllegalArgumentException::new);
